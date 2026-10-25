@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><!-- rmg-icons/4 -->
+<defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2d1470"/><stop offset="1" stop-color="#120830"/></linearGradient>
+<linearGradient id="rim" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffb43a"/><stop offset="1" stop-color="#b8500c"/></linearGradient>
+<linearGradient id="face" x1="0.15" y1="0.15" x2="0.85" y2="0.85"><stop offset="0" stop-color="#fff3b0"/><stop offset="0.45" stop-color="#ffd23f"/><stop offset="1" stop-color="#ff9f2e"/></linearGradient></defs>
+<rect width="64" height="64" rx="14.4" fill="url(#bg)"/>
+<rect x="15.49" y="44.66" width="33.02" height="10.46" rx="3.3" fill="#1c1040" stroke="#37e0d0" stroke-width="1.32"/>
+<rect x="21.54" y="48.46" width="20.92" height="2.86" rx="1.43" fill="#ff4d8d"/>
+<circle cx="32" cy="26.5" r="15.96" fill="url(#rim)"/>
+<circle cx="32" cy="26.5" r="14.05" fill="url(#face)"/>
+<path d="M31.01 17.76h1.99v1.99h-1.99zM31.01 19.74h1.99v1.99h-1.99zM31.01 21.73h1.99v1.99h-1.99zM27.03 23.72h1.99v1.99h-1.99zM31.01 23.72h1.99v1.99h-1.99zM34.98 23.72h1.99v1.99h-1.99zM25.05 25.7h1.99v1.99h-1.99zM31.01 25.7h1.99v1.99h-1.99zM36.97 25.7h1.99v1.99h-1.99zM23.06 27.69h1.99v1.99h-1.99zM31.01 27.69h1.99v1.99h-1.99zM38.95 27.69h1.99v1.99h-1.99zM31.01 29.67h1.99v1.99h-1.99zM31.01 31.66h1.99v1.99h-1.99zM27.03 33.65h1.99v1.99h-1.99zM29.02 33.65h1.99v1.99h-1.99zM31.01 33.65h1.99v1.99h-1.99z" fill="#3b1a78"/>
+</svg>

@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <!-- 内容安全策略：纵深防御。锁死默认源/对象/base/表单。此处为开发版（Vite dev HMR
+         需要 ws/wss 与 unsafe-eval）；vite.config.ts 的 csp-by-env 插件在构建时替换为
+         生产版（script-src 'self'、connect-src 'self'）。style-src 保留 'unsafe-inline'
+         供 DOM style 属性与注入样式使用（本站纯客户端、无外部请求） -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'"
+    />
+    <title>童年小游戏合集</title>
+    <!-- viewport-fit=cover 让内容延伸到刘海/圆角区域，配合 safe-area-inset 使用 -->
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#1a1030" />
+    <!-- 整站深色：表单控件与首帧画布按深色渲染，避免加载时白闪 -->
+    <meta name="color-scheme" content="dark" />
+    <meta name="description" content="复古小游戏风格 · 童年经典小游戏合集 · 触屏优化" />
+    <!-- 分数、纪录等数字不被 iOS 自动识别成电话号码链接 -->
+    <meta name="format-detection" content="telephone=no" />
+
+    <!-- iOS 全屏 PWA 支持 -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="小游戏" />
+    <link rel="apple-touch-icon" href="icons/icon-180.png" />
+    <!-- 各机型的 apple-touch-startup-image 由 vite.config.ts 的 splash-links 插件注入 -->
+    <link rel="icon" type="image/svg+xml" href="icons/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
+    <link rel="preload" as="image" href="icons/mark-slot-512.png" />
+    <link rel="preload" as="image" href="icons/mark-coin-512.png" />
+
+    <!-- 启动画面：首帧即渲染，背景与标志位置和 iOS 启动图（scripts/gen-icons.mjs 的
+         SPLASH_LAYOUT：标志中心在 42% 高度、边长为短边的 36%）逐像素对齐，从系统启动图
+         过渡到网页时没有跳变。大厅挂载后由 src/app/boot.ts 播放「投币」离场并移除。
+         只用内联样式、不用内联脚本（生产 CSP 为 script-src 'self'） -->
+    <style>
+      html {
+        background: #1a1030;
+      }
+      #boot {
+        position: fixed;
+        inset: 0;
+        z-index: 200;
+        overflow: hidden;
+        container-type: size;
+        color: #f5f0ff;
+        font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei',
+          'Noto Sans SC', system-ui, sans-serif;
+        text-align: center;
+        -webkit-user-select: none;
+        user-select: none;
+        background:
+          radial-gradient(60% 45% at 20% 8%, rgba(176, 107, 255, 0.22), transparent 60%),
+          radial-gradient(55% 40% at 90% 20%, rgba(55, 224, 208, 0.16), transparent 60%),
+          radial-gradient(70% 50% at 50% 110%, rgba(255, 77, 141, 0.18), transparent 60%),
+          linear-gradient(180deg, #1a1030, #0d0820);
+      }
+      .boot__mark {
+        position: absolute;
+        left: 50%;
+        top: 42%;
+        width: min(36vw, 36vh);
+        height: min(36vw, 36vh);
+        width: 36cqmin;
+        height: 36cqmin;
+        transform: translate(-50%, -50%);
+      }
+      .boot__mark img,
+      .boot__coin {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+      }
+      /* 游戏币裁在投币缝中线（标志框 81.5% 处）以上，落下时像被吞进投币口 */
+      .boot__coin {
+        clip-path: inset(0 0 18.5% 0);
+      }
+      .boot__flash {
+        position: absolute;
+        left: 50%;
+        top: 81.5%;
+        width: 62%;
+        height: 26%;
+        transform: translate(-50%, -50%);
+        border-radius: 50%;
+        background: radial-gradient(closest-side, rgba(255, 214, 230, 0.95), rgba(255, 77, 141, 0.55) 55%, transparent);
+        opacity: 0;
+      }
+      .boot__title,
+      .boot__status,
+      .boot__slow {
+        position: absolute;
+        left: 16px;
+        right: 16px;
+        margin: 0;
+        opacity: 0;
+      }
+      /* 标题框收窄到文字宽度并居中：渐变从「童」的青色走到「集」的紫色，
+         与大厅标题同一条品牌渐变（整行宽度时文字只落在渐变中段，偏灰） */
+      .boot__title {
+        left: 0;
+        right: 0;
+        width: fit-content;
+        max-width: calc(100% - 32px);
+        margin-inline: auto;
+        top: calc(42% + min(18vw, 18vh) + 20px);
+        top: calc(42% + 18cqmin + 20px);
+        font-size: 24px;
+        font-weight: 850;
+        letter-spacing: 2px;
+        background: linear-gradient(90deg, #37e0d0, #ff4d8d, #b06bff);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        filter: drop-shadow(0 2px 10px rgba(255, 77, 141, 0.35));
+        animation: boot-rise 0.5s 0.12s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+      }
+      .boot__status {
+        top: calc(42% + min(18vw, 18vh) + 60px);
+        top: calc(42% + 18cqmin + 60px);
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 4px;
+        color: #ffd23f;
+        animation:
+          boot-rise 0.4s 0.3s cubic-bezier(0.22, 1, 0.36, 1) forwards,
+          boot-blink 1s 0.7s steps(1) infinite;
+      }
+      .boot__slow {
+        top: calc(42% + min(18vw, 18vh) + 88px);
+        top: calc(42% + 18cqmin + 88px);
+        font-size: 12px;
+        color: #a99fd0;
+        animation: boot-rise 0.4s 6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+      }
+      /* 启动模块没跑起来时的出口：延迟 20s 才从 hidden 变为可见可点。
+         both 让延迟期间停在 from（不可点）；正常启动会先 is-leaving 并摘掉 #boot。 */
+      .boot__refresh {
+        position: absolute;
+        left: 16px;
+        right: 16px;
+        top: calc(42% + min(18vw, 18vh) + 116px);
+        top: calc(42% + 18cqmin + 116px);
+        margin: 0;
+        padding: 10px 12px;
+        font-size: 14px;
+        font-weight: 700;
+        letter-spacing: 1px;
+        line-height: 1.3;
+        color: #37e0d0;
+        text-decoration: underline;
+        text-underline-offset: 3px;
+        opacity: 0;
+        visibility: hidden;
+        animation: boot-refresh-in 0.4s 20s cubic-bezier(0.22, 1, 0.36, 1) both;
+      }
+      /* 离场：币落进投币缝 → 缝口闪光 → 整屏淡出；离场一开始就放行点击 */
+      #boot.is-leaving {
+        pointer-events: none;
+        animation: boot-out 0.26s 0.3s cubic-bezier(0.55, 0, 1, 0.45) forwards;
+      }
+      #boot.is-leaving .boot__coin img {
+        animation: boot-drop 0.3s cubic-bezier(0.55, 0, 1, 0.45) forwards;
+      }
+      #boot.is-leaving .boot__flash {
+        animation: boot-flash 0.42s 0.18s linear forwards;
+      }
+      /* 离场后取消 20s 动画，避免慢启动刚好跨过 20 秒时链接挡住已经放行的点击 */
+      #boot.is-leaving .boot__refresh {
+        animation: none;
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+      }
+      @keyframes boot-rise {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
+        }
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
+      @keyframes boot-refresh-in {
+        from {
+          opacity: 0;
+          visibility: hidden;
+          transform: translateY(8px);
+        }
+        to {
+          opacity: 1;
+          visibility: visible;
+          transform: none;
+        }
+      }
+      @keyframes boot-blink {
+        50% {
+          opacity: 0.25;
+        }
+      }
+      @keyframes boot-drop {
+        to {
+          transform: translateY(96%);
+        }
+      }
+      @keyframes boot-flash {
+        30% {
+          opacity: 1;
+        }
+        to {
+          opacity: 0;
+        }
+      }
+      @keyframes boot-out {
+        to {
+          opacity: 0;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .boot__title,
+        .boot__status {
+          animation: none;
+          opacity: 1;
+        }
+        #boot.is-leaving {
+          animation: boot-out 0.15s linear forwards;
+        }
+        #boot.is-leaving .boot__coin img,
+        #boot.is-leaving .boot__flash {
+          animation: none;
+        }
+      }
+    </style>
+    <script type="module" crossorigin src="/mobile-playground/games/assets/index-s_DpcD36.js"></script>
+    <link rel="stylesheet" crossorigin href="/mobile-playground/games/assets/index-fzktZAMu.css">
+    <link rel="apple-touch-startup-image" media="(device-width: 440px) and (device-height: 956px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="icons/splash/splash-1320x2868.png">
+    <link rel="apple-touch-startup-image" media="(device-width: 420px) and (device-height: 912px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="icons/splash/splash-1260x2736.png">
+    <link rel="apple-touch-startup-image" media="(device-width: 402px) and (device-height: 874px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="icons/splash/splash-1206x2622.png">
+    <link rel="apple-touch-startup-image" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="icons/splash/splash-1290x2796.png">
+    <link rel="apple-touch-startup-image" media="(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="icons/splash/splash-1179x2556.png">
+    <link rel="apple-touch-startup-image" media="(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="icons/splash/splash-1284x2778.png">
+    <link rel="apple-touch-startup-image" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="icons/splash/splash-1170x2532.png">
+    <link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="icons/splash/splash-1125x2436.png">
+    <link rel="apple-touch-startup-image" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="icons/splash/splash-1242x2688.png">
+    <link rel="apple-touch-startup-image" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="icons/splash/splash-828x1792.png">
+    <link rel="apple-touch-startup-image" media="(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="icons/splash/splash-1242x2208.png">
+    <link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="icons/splash/splash-750x1334.png">
+    <link rel="apple-touch-startup-image" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="icons/splash/splash-640x1136.png">
+    <link rel="apple-touch-startup-image" media="(device-width: 1032px) and (device-height: 1376px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="icons/splash/splash-2064x2752.png">
+    <link rel="apple-touch-startup-image" media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="icons/splash/splash-2048x2732.png">
+    <link rel="apple-touch-startup-image" media="(device-width: 834px) and (device-height: 1210px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="icons/splash/splash-1668x2420.png">
+    <link rel="apple-touch-startup-image" media="(device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="icons/splash/splash-1668x2388.png">
+    <link rel="apple-touch-startup-image" media="(device-width: 820px) and (device-height: 1180px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="icons/splash/splash-1640x2360.png">
+    <link rel="apple-touch-startup-image" media="(device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="icons/splash/splash-1668x2224.png">
+    <link rel="apple-touch-startup-image" media="(device-width: 810px) and (device-height: 1080px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="icons/splash/splash-1620x2160.png">
+    <link rel="apple-touch-startup-image" media="(device-width: 744px) and (device-height: 1133px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="icons/splash/splash-1488x2266.png">
+    <link rel="apple-touch-startup-image" media="(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="icons/splash/splash-1536x2048.png">
+  <link rel="manifest" href="/mobile-playground/games/manifest.webmanifest"></head>
+  <body>
+    <div id="boot" aria-hidden="true">
+      <div class="boot__mark">
+        <img src="icons/mark-slot-512.png" alt="" decoding="sync" />
+        <div class="boot__coin"><img src="icons/mark-coin-512.png" alt="" decoding="sync" /></div>
+        <i class="boot__flash"></i>
+      </div>
+      <p class="boot__title">童年小游戏合集</p>
+      <p class="boot__status">投币中</p>
+      <p class="boot__slow">首次打开要下载游戏，请稍候</p>
+      <a class="boot__refresh" href="">加载失败，点此刷新</a>
+    </div>
+    <div id="app"></div>
+  </body>
+</html>

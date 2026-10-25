@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f6f5ef">
+<meta name="description" content="拆解机械、重温经典小游戏、陪孩子探索。在手机上打开你的随身游乐场。">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="随身游乐场">
+<title>随身游乐场</title>
+<link rel="icon" type="image/svg+xml" href="./assets/icon.svg">
+<link rel="apple-touch-icon" href="./assets/icon-192.png">
+<link rel="manifest" href="./manifest.webmanifest">
+<style>
+:root{color-scheme:light;--ink:#182b37;--muted:#65747d;--paper:#f6f5ef;--blue:#175bc8}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;line-height:1.65;-webkit-tap-highlight-color:transparent}a{color:inherit}a,summary{touch-action:manipulation}a:focus-visible,summary:focus-visible{outline:3px solid var(--blue);outline-offset:5px}main,header,footer{max-width:1160px;margin:auto;padding-left:32px;padding-right:32px}header{display:flex;align-items:center;justify-content:space-between;padding-top:30px;padding-bottom:30px}.brand{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:750;letter-spacing:.08em}.brand img{width:34px;height:34px}.status{font-size:12px;letter-spacing:.08em;color:var(--muted);display:flex;gap:8px;align-items:center}.status:before{content:"";width:7px;height:7px;border-radius:50%;background:#198259}h1{font-size:clamp(34px,5.2vw,58px);line-height:1.25;letter-spacing:-.035em;margin:24px 0 18px;font-weight:780}.intro{font-size:17px;color:var(--muted);margin:0 0 36px;max-width:620px}.eyebrow{font-size:12px;letter-spacing:.18em;color:var(--blue);font-weight:700;margin:22px 0 0}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px}.card{display:flex;flex-direction:column;overflow:hidden;border:1px solid #e3e5df;border-radius:25px;text-decoration:none;background:#fff;box-shadow:0 6px 20px #24312a05;transition:transform .18s ease,box-shadow .18s ease}.card:hover{transform:translateY(-5px);box-shadow:0 16px 32px #24312a12}.art{height:216px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}.mechanica .art{background:#0d1925}.mechanica .art img{width:100%;height:100%;object-fit:cover;object-position:59% 42%;transform:scale(1.02)}.art-badge{position:absolute;top:16px;left:16px;border:1px solid #ffffff38;border-radius:20px;padding:3px 10px;background:#09131db8;color:#f4fafc;font-size:11px;letter-spacing:.08em}.arcade .art{background:#e3ecff}.learn .art{background:#e8f2e5}.arcade svg,.learn svg{width:90%;height:95%}.body{padding:23px 24px 24px;flex:1;display:flex;flex-direction:column}.meta{font-size:11px;font-weight:700;letter-spacing:.13em;color:var(--muted);margin:0 0 5px}h2{font-size:25px;margin:0 0 8px;line-height:1.35}.description{color:var(--muted);font-size:14px;margin:0;min-height:48px}.entry{display:flex;align-items:center;justify-content:space-between;margin-top:24px;padding-top:17px;border-top:1px solid #eef0ea;font-size:14px;font-weight:700}.entry span:last-child{border-radius:50%;width:31px;height:31px;background:#f0f3f8;text-align:center;line-height:31px;font-size:19px}.mechanica .entry{color:#175bc8}.arcade .entry{color:#5e43bb}.learn .entry{color:#297d54}.guide{margin:32px 0 0;padding:19px 23px;border:1px solid #e0e4dc;border-radius:18px;background:#ffffff60}.guide summary{cursor:pointer;font-size:14px;font-weight:650;min-height:28px}.guide p{font-size:14px;color:var(--muted);margin:12px 0 0;max-width:800px}.guide strong{color:var(--ink);font-weight:600}footer{display:flex;justify-content:space-between;gap:16px;font-size:12px;color:var(--muted);padding-top:30px;padding-bottom:max(26px,env(safe-area-inset-bottom))}.hint{font-size:12px;color:var(--muted);margin:12px 2px 0}
+@media(max-width:760px){header,main,footer{padding-left:22px;padding-right:22px}header{padding-top:max(22px,env(safe-area-inset-top));padding-bottom:14px}.status{font-size:10px}.brand{font-size:14px;letter-spacing:.02em}.brand img{width:29px;height:29px}.eyebrow{margin-top:18px;font-size:10px}h1{font-size:36px;margin-top:14px;margin-bottom:14px}.intro{font-size:14px;margin-bottom:25px}.grid{grid-template-columns:1fr;gap:18px}.art{height:180px}.body{padding:19px 21px 20px}h2{font-size:24px}.description{min-height:0}.entry{margin-top:17px;padding-top:12px}.guide{margin-top:24px;padding:17px 19px}footer{flex-direction:column;gap:3px;padding-top:23px}.mechanica .art img{object-position:60% 43%}}
+@media(prefers-reduced-motion:reduce){.card{transition:none}.card:hover{transform:none}}
+</style>
+</head>
+<body>
+<header><div class="brand"><img src="./assets/icon.svg" alt="">随身游乐场</div><div class="status">手机 · 平板 · 电脑</div></header>
+<main>
+<p class="eyebrow">EXPLORE · PLAY · GROW</p>
+<h1>好奇与快乐，<br>随时开玩。</h1>
+<p class="intro">拆机械、玩经典、陪孩子探索。<br>选一个喜欢的，马上开始。</p>
+<div class="grid">
+<a class="card mechanica" href="./mechanica/" aria-label="进入机械探索，50个模型">
+<div class="art"><img src="./assets/mechanica.png" alt="国际空间站三维模型" fetchpriority="high"><span class="art-badge">MECHANICA X</span></div>
+<div class="body"><p class="meta">50 个模型 · 自由拆解</p><h2>机械探索</h2><p class="description">从发动机到空间站，旋转、展开，看看里面的世界。</p><div class="entry"><span>开始探索</span><span aria-hidden="true">↗</span></div></div>
+</a>
+<a class="card arcade" href="./games/" aria-label="进入小游戏合集，52款游戏和宝宝益智乐园">
+<div class="art"><svg viewBox="0 0 320 210" fill="none" aria-hidden="true"><circle cx="260" cy="45" r="29" fill="#cadbff"/><circle cx="58" cy="160" r="42" fill="#d5e1ff"/><path d="M77 82Q80 66 100 66H222Q241 67 244 86L262 146Q265 168 246 175Q231 181 219 167L192 144H130L100 170Q82 184 66 170Q55 161 61 142Z" fill="#5467d5"/><path d="M79 80Q83 65 101 65H220Q237 66 241 84L250 119Q251 138 230 138H91Q70 137 71 119Z" fill="#fff"/><path d="M108 82V118M90 100H126" stroke="#26385a" stroke-width="12" stroke-linecap="round"/><circle cx="213" cy="89" r="10" fill="#f28a54"/><circle cx="233" cy="110" r="10" fill="#91b576"/><circle cx="167" cy="119" r="5" fill="#ccd6ef"/><circle cx="149" cy="119" r="5" fill="#ccd6ef"/><path d="M162 65V43Q160 21 181 22H198" stroke="#5368cf" stroke-width="6" stroke-linecap="round"/><path d="M49 46L54 36L60 46L71 50L60 55L54 66L49 55L38 50Z" fill="#eda657"/><path d="M269 158L273 149L278 158L287 162L278 166L273 175L269 166L260 162Z" fill="#839be4"/></svg></div>
+<div class="body"><p class="meta">52 款游戏 · 5 大启蒙模块</p><h2>小游戏合集</h2><p class="description">经典小游戏与宝宝益智乐园，大小朋友都能找到快乐。</p><div class="entry"><span>进入游戏大厅</span><span aria-hidden="true">↗</span></div></div>
+</a>
+
+</div>
+<details class="guide"><summary>把游乐场放到手机桌面</summary><p><strong>iPhone / iPad</strong>，在 Safari 中打开此页面，点共享，再选添加到主屏幕。<strong>安卓</strong>，在浏览器菜单中选择添加到主屏幕或安装应用。</p><p>童年小游戏支持缓存后的离线游玩。首次使用请保持联网并等待缓存完成。宝宝益智乐园也收在游戏大厅中，声音由设备提供。机械探索通过在线入口打开。</p></details>
+<p class="hint">游戏进度保存在当前设备的浏览器中。</p>
+</main>
+<footer><span>把好奇心带在身边。</span><span>随身游乐场</span></footer>
+</body>
+</html>

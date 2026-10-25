@@ -1,0 +1,3149 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#C7E7F4">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="宝宝益智乐园">
+<title>宝宝益智乐园</title>
+<style>
+  /* ========== 基础与主题（剪纸绘本设计语言） ========== */
+  :root {
+    --paper: #FFF6E9;      /* 纸面 */
+    --sky: #C7E7F4;        /* 天空 */
+    --sun: #FFC24B;        /* 阳光黄（主强调） */
+    --sun-deep: #E39F2F;
+    --coral: #FF8B7B;      /* 珊瑚红（动作） */
+    --coral-deep: #E4685C;
+    --leaf: #A5D89B;       /* 草叶绿 */
+    --leaf-deep: #7FBF77;
+    --night: #3A4A85;      /* 夜空蓝 */
+    --ink: #544537;        /* 暖墨色文字 */
+    --ink-soft: #907F6C;
+    --line: #EAD9BE;       /* 纸边线 */
+    --card-radius: 26px;
+    --text-dark: var(--ink);
+    --shadow: 0 10px 22px rgba(84, 69, 55, .14);
+    --font-display: "Yuanti SC", "YouYuan", "PingFang SC", "Microsoft YaHei", sans-serif;
+    --font-num: "Arial Rounded MT Bold", "Yuanti SC", "PingFang SC", sans-serif;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  /* body 用 min-height：内容超一屏时渐变随内容拉伸，避免背景平铺出色带接缝 */
+  html { height: 100%; margin: 0; }
+  body { min-height: 100%; margin: 0; }
+  body {
+    font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+    /* 右上角阳光光晕 + 天空到纸面的过渡 */
+    background:
+      radial-gradient(46vmax 46vmax at 88% -12%, #FFE9B8 0%, rgba(255, 233, 184, 0) 62%),
+      linear-gradient(180deg, var(--sky) 0%, #E6F3EA 52%, var(--paper) 100%);
+    background-repeat: no-repeat;
+    background-color: var(--paper);
+    color: var(--ink);
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  /* 慢速漂浮的纸片云 */
+  body::before, body::after {
+    content: "";
+    position: fixed;
+    z-index: 0;
+    pointer-events: none;
+    width: 36vmin; height: 11vmin;
+    border-radius: 999px;
+    background: rgba(255,255,255,.8);
+    box-shadow: 8vmin 3vmin 0 -2vmin rgba(255,255,255,.6), -9vmin 4vmin 0 -3vmin rgba(255,255,255,.55);
+  }
+  body::before { top: 8%; left: -8%; animation: drift 70s linear infinite; }
+  /* 起点须在屏外，循环回卷才无缝；负延迟让首屏时它已飘到天空中部 */
+  body::after  { top: 19%; left: -8%; width: 27vmin; height: 8vmin; opacity: .75; animation: drift 95s linear -40s infinite; }
+  header, main { position: relative; z-index: 1; }
+  button {
+    font-family: inherit;
+    color: inherit;
+    border: none;
+    cursor: pointer;
+    touch-action: manipulation;
+    background: none;
+  }
+  button:focus-visible { outline: 3px solid var(--coral); outline-offset: 2px; }
+
+  /* ========== 顶栏 ========== */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    gap: 10px;
+  }
+  .header-side { display: flex; align-items: center; gap: 10px; }
+  .icon-btn {
+    font-size: 28px;
+    width: 56px; height: 56px;
+    border-radius: 18px;
+    background: #fff;
+    border-bottom: 4px solid var(--line);
+    box-shadow: 0 4px 10px rgba(84,69,55,.10);
+    transition: transform .12s, border-bottom-width .12s;
+  }
+  .icon-btn:active { transform: translateY(3px); border-bottom-width: 1px; }
+  #title-mini {
+    font-family: var(--font-display);
+    font-size: 21px; font-weight: 800; letter-spacing: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  /* 极窄屏：给按钮让位，隐藏顶栏标题 */
+  @media (max-width: 480px) { #title-mini { display: none; } }
+  #star-box {
+    font-size: 22px; font-weight: 800;
+    font-family: var(--font-num);
+    background: #fff;
+    padding: 8px 16px;
+    border-radius: 999px;
+    border-bottom: 4px solid var(--line);
+    box-shadow: 0 4px 10px rgba(84,69,55,.10);
+    min-width: 76px;
+    text-align: center;
+    /* 与图标按钮精确等高，窄屏不折行撑高顶栏 */
+    white-space: nowrap;
+    height: 56px;
+    line-height: 36px;
+  }
+  #star-box.pop { animation: pop .5s; }
+
+  /* ========== 屏幕切换 ========== */
+  main { flex: 1; display: flex; flex-direction: column; width: 100%; max-width: 1060px; margin: 0 auto; }
+  .screen { display: none; flex: 1; flex-direction: column; padding: 6px 14px 18px; }
+  .screen.active { display: flex; animation: screen-in .28s ease-out; }
+  #screen-home { justify-content: center; padding-bottom: 8vh; }
+  .hidden { display: none !important; }
+
+  /* ========== 首页 ========== */
+  .big-title {
+    text-align: center;
+    font-family: var(--font-display);
+    font-size: clamp(34px, 6.5vw, 54px);
+    letter-spacing: 4px;
+    margin: 20px 0 6px;
+  }
+  /* 纸片字母：每个字一张彩纸，微微歪斜，入场逐个蹦出 */
+  .big-title span {
+    display: inline-block;
+    transform: rotate(var(--r, 0deg));
+    text-shadow: 0 3px 0 rgba(255,255,255,.9);
+    animation: letter-in .5s cubic-bezier(.34, 1.56, .64, 1) backwards;
+  }
+  .big-title span:nth-child(1) { animation-delay: .05s; }
+  .big-title span:nth-child(2) { animation-delay: .12s; }
+  .big-title span:nth-child(3) { animation-delay: .19s; }
+  .big-title span:nth-child(4) { animation-delay: .26s; }
+  .big-title span:nth-child(5) { animation-delay: .33s; }
+  .big-title span:nth-child(6) { animation-delay: .40s; }
+  /* 深色系纸片字：对浅蓝天空保持 ≥3:1 对比度 */
+  .big-title span:nth-child(4n+1) { color: #B5761C; --r: -3deg; }
+  .big-title span:nth-child(4n+2) { color: #C24E42; --r: 2deg; }
+  .big-title span:nth-child(4n+3) { color: #3F7F38; --r: -2deg; }
+  .big-title span:nth-child(4n+4) { color: #3F5CA8; --r: 3deg; }
+  .subtitle { text-align: center; font-size: 19px; color: var(--ink-soft); margin: 0 0 26px; }
+  .menu {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: stretch;
+    gap: 26px;
+    padding: 8px 8px 30px;
+  }
+  /* 绘本封面卡：上半场景条 + 下半标题 */
+  .menu-card {
+    width: min(250px, 84vw);
+    padding: 0 0 18px;
+    border-radius: var(--card-radius);
+    background: #fff;
+    border-bottom: 6px solid rgba(84,69,55,.16);
+    box-shadow: var(--shadow);
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    overflow: hidden;
+    transition: transform .15s;
+    color: var(--ink);
+  }
+  .menu-card { --tilt: 0deg; transform: rotate(var(--tilt)); animation: rise-in .5s cubic-bezier(.34, 1.56, .64, 1) backwards; }
+  .menu-card:nth-child(1) { --tilt: -1.6deg; animation-delay: .12s; }
+  .menu-card:nth-child(2) { --tilt: 1.2deg;  animation-delay: .22s; }
+  .menu-card:nth-child(3) { --tilt: -0.9deg; animation-delay: .32s; }
+  .menu-card:nth-child(4) { --tilt: 1.4deg;  animation-delay: .42s; }
+  .menu-card:nth-child(5) { --tilt: -1.1deg; animation-delay: .52s; }
+  .menu-card:active { transform: scale(.95) rotate(0deg); }
+  .menu-scene {
+    width: 100%; height: 128px;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 8px;
+  }
+  .menu-card[data-scene="animals"] .menu-scene {
+    background:
+      radial-gradient(130% 75% at 14% 118%, var(--leaf-deep) 0 52%, transparent 52.5%),
+      radial-gradient(140% 85% at 88% 126%, var(--leaf) 0 60%, transparent 60.5%),
+      linear-gradient(180deg, var(--sky), #E9F6E3);
+  }
+  .menu-card[data-scene="counting"] .menu-scene {
+    background:
+      radial-gradient(3px 3px at 20% 30%, #FFF 50%, transparent 51%),
+      radial-gradient(2px 2px at 72% 22%, #FFF 50%, transparent 51%),
+      radial-gradient(2px 2px at 46% 58%, #FFF 50%, transparent 51%),
+      radial-gradient(3px 3px at 86% 66%, #FFF 50%, transparent 51%),
+      linear-gradient(180deg, #55679F, var(--night));
+  }
+  .menu-card[data-scene="commands"] .menu-scene {
+    background:
+      radial-gradient(130% 75% at 18% 120%, #F0B564 0 52%, transparent 52.5%),
+      radial-gradient(140% 85% at 85% 128%, #F8D399 0 60%, transparent 60.5%),
+      linear-gradient(180deg, #FDEED3, #FBE3BD);
+  }
+  .menu-card[data-scene="literacy"] .menu-scene {
+    background:
+      radial-gradient(130% 75% at 16% 120%, #E88C6B 0 52%, transparent 52.5%),
+      radial-gradient(140% 85% at 86% 128%, #F5B79A 0 60%, transparent 60.5%),
+      linear-gradient(180deg, #FDE8DC, #FBD9C6);
+  }
+  .menu-card[data-scene="logic"] .menu-scene {
+    background:
+      radial-gradient(3px 3px at 24% 30%, #FFF 50%, transparent 51%),
+      radial-gradient(2px 2px at 76% 24%, #FFF 50%, transparent 51%),
+      radial-gradient(130% 75% at 20% 122%, #7FB8DC 0 52%, transparent 52.5%),
+      radial-gradient(140% 85% at 84% 130%, #B3DCF0 0 60%, transparent 60.5%),
+      linear-gradient(180deg, #E4F3FB, #CFE9F7);
+  }
+  .menu-emoji { font-size: 66px; filter: drop-shadow(0 5px 0 rgba(84,69,55,.12)); animation: bob 2.8s ease-in-out infinite; }
+  /* 负延迟错峰：五个角色各有节奏，不再齐刷刷同步起落 */
+  .menu-card:nth-child(1) .menu-emoji { animation-delay: -.3s; }
+  .menu-card:nth-child(2) .menu-emoji { animation-delay: -1.7s; }
+  .menu-card:nth-child(3) .menu-emoji { animation-delay: -.9s; }
+  .menu-card:nth-child(4) .menu-emoji { animation-delay: -2.2s; }
+  .menu-card:nth-child(5) .menu-emoji { animation-delay: -1.2s; }
+  .menu-name { font-family: var(--font-display); font-size: 26px; font-weight: 800; }
+  .menu-desc { font-size: 15px; color: var(--ink-soft); }
+
+  /* ========== 通用场景元素 ========== */
+  .scene-actions {
+    display: flex; justify-content: center; gap: 16px;
+    padding-top: 12px;
+  }
+  /* 糖果按钮：厚底边 + 按压下沉 */
+  .action-btn {
+    font-family: var(--font-display);
+    font-size: 24px; font-weight: 800;
+    padding: 14px 34px;
+    border-radius: 999px;
+    background: var(--sun);
+    color: #5C4713;
+    border-bottom: 5px solid var(--sun-deep);
+    box-shadow: 0 8px 18px rgba(227,159,47,.35);
+    transition: transform .12s, border-bottom-width .12s;
+    /* 呼吸光晕吸引注意（只动阴影，不与按压 transform 冲突） */
+    animation: sun-pulse 2.4s ease-in-out infinite;
+  }
+  .action-btn:active { transform: translateY(4px); border-bottom-width: 1px; }
+  .small-btn {
+    font-size: 22px;
+    min-width: 52px; height: 52px;
+    padding: 0 12px;
+    border-radius: 16px;
+    background: #fff;
+    border-bottom: 4px solid var(--line);
+    box-shadow: 0 4px 10px rgba(84,69,55,.10);
+    transition: transform .12s, border-bottom-width .12s;
+  }
+  .small-btn:active { transform: translateY(3px); border-bottom-width: 1px; }
+
+  /* ========== 动物乐园 ========== */
+  .habitat-tabs { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; padding: 4px 0 10px; }
+  .habitat-tab {
+    font-family: var(--font-display);
+    font-size: 19px; font-weight: 800;
+    padding: 10px 18px;
+    border-radius: 999px;
+    background: #fff;
+    border-bottom: 4px solid var(--line);
+    box-shadow: 0 4px 10px rgba(84,69,55,.08);
+    transition: transform .12s, border-bottom-width .12s;
+  }
+  .habitat-tab.active { background: var(--sun); border-bottom-color: var(--sun-deep); color: #5C4713; transform: scale(1.06); }
+  .habitat-tab:active { transform: translateY(3px); border-bottom-width: 1px; }
+  .seek-bar {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    background: var(--paper);
+    border: 2px solid var(--line);
+    border-radius: 18px;
+    padding: 10px 14px;
+    margin-bottom: 10px;
+    font-size: 20px; font-weight: 800;
+    font-family: var(--font-display);
+    box-shadow: var(--shadow);
+  }
+  /* 舞台：白纸相框 + 层叠纸艺山丘 */
+  .animal-stage {
+    position: relative;
+    flex: 1;
+    min-height: 340px;
+    border-radius: var(--card-radius);
+    box-shadow: inset 0 0 0 6px #fff, var(--shadow);
+    display: flex; flex-wrap: wrap; align-content: center; justify-content: center;
+    gap: 6px 18px;
+    padding: 46px 16px 20px;
+    overflow: hidden;
+  }
+  .animal-stage { animation: screen-in .25s ease-out; }
+  .animal-stage.h-grass {
+    background:
+      radial-gradient(160% 80% at 18% 132%, var(--leaf-deep) 0 48%, transparent 48.5%),
+      radial-gradient(170% 90% at 88% 142%, var(--leaf) 0 55%, transparent 55.5%),
+      linear-gradient(180deg, var(--sky) 0%, #EAF6E4 100%);
+  }
+  .animal-stage.h-forest {
+    background:
+      radial-gradient(150% 85% at 12% 130%, #4F9E62 0 46%, transparent 46.5%),
+      radial-gradient(170% 95% at 85% 140%, #7CC08B 0 54%, transparent 54.5%),
+      radial-gradient(120% 70% at 50% 148%, #A8D9AC 0 60%, transparent 60.5%),
+      linear-gradient(180deg, #DFF1DC 0%, #CBE8CD 100%);
+  }
+  .animal-stage.h-farm {
+    background:
+      radial-gradient(160% 80% at 15% 133%, #E8B05C 0 47%, transparent 47.5%),
+      radial-gradient(170% 90% at 88% 142%, #F2D49B 0 55%, transparent 55.5%),
+      linear-gradient(180deg, #FDEED3 0%, #FAE6C4 100%);
+  }
+  .animal-stage.h-ocean {
+    background:
+      radial-gradient(160% 75% at 25% 138%, #4FAECF 0 48%, transparent 48.5%),
+      radial-gradient(170% 85% at 80% 146%, #8AD2E8 0 56%, transparent 56.5%),
+      linear-gradient(180deg, #D8F1FA 0%, #BFE8F4 100%);
+  }
+  .stage-decor { position: absolute; font-size: 34px; opacity: .9; pointer-events: none; filter: drop-shadow(0 3px 0 rgba(84,69,55,.10)); }
+  .animal-btn {
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    width: 132px;
+    padding: 8px 4px;
+    border-radius: 20px;
+    transition: transform .15s;
+  }
+  .animal-btn:active { transform: scale(.92); }
+  /* 贴纸化：白色圆片衬底 */
+  .animal-emoji {
+    font-size: 58px; line-height: 1;
+    width: 96px; height: 96px;
+    display: flex; align-items: center; justify-content: center;
+    background: #fff;
+    border-radius: 34px;
+    box-shadow: 0 6px 14px rgba(84,69,55,.16);
+    animation: bob 2.8s ease-in-out infinite;
+    /* 错峰用变量而非内联 delay，避免 .bounce 的 pop 也被延迟 */
+    animation-delay: var(--bob-delay, 0s);
+  }
+  /* 偶尔"招手"摇摆：挂在按钮上，不覆盖表情贴纸的 bob 漂浮（放在 shake 前，点击反馈优先） */
+  .animal-btn.wiggle { animation: wiggle .85s ease-in-out; }
+  .animal-btn.bounce .animal-emoji { animation: pop .6s; }
+  .animal-btn.shake { animation: shake .45s; }
+  .animal-name {
+    font-family: var(--font-display);
+    font-size: 17px; font-weight: 800;
+    background: var(--paper);
+    border: 2px solid var(--line);
+    border-radius: 999px;
+    padding: 3px 14px;
+  }
+
+  /* ========== 数一数 ========== */
+  .count-header {
+    display: flex; align-items: center; justify-content: center; gap: 12px;
+    padding: 4px 0 10px;
+  }
+  .count-display {
+    font-family: var(--font-display);
+    font-size: 22px; font-weight: 800;
+    background: var(--paper);
+    border: 2px solid var(--line);
+    border-radius: 18px;
+    padding: 12px 20px;
+    box-shadow: var(--shadow);
+    text-align: center;
+    max-width: 70vw;
+  }
+  .count-stage {
+    position: relative;
+    flex: 1;
+    min-height: 320px;
+    border-radius: var(--card-radius);
+    box-shadow: inset 0 0 0 6px #fff, var(--shadow);
+    overflow: hidden;
+  }
+  .count-stage.theme-star {
+    background:
+      radial-gradient(3px 3px at 12% 24%, rgba(255,255,255,.9) 50%, transparent 51%),
+      radial-gradient(2px 2px at 34% 12%, rgba(255,255,255,.8) 50%, transparent 51%),
+      radial-gradient(2px 2px at 58% 30%, rgba(255,255,255,.7) 50%, transparent 51%),
+      radial-gradient(3px 3px at 82% 14%, rgba(255,255,255,.9) 50%, transparent 51%),
+      radial-gradient(2px 2px at 92% 44%, rgba(255,255,255,.7) 50%, transparent 51%),
+      radial-gradient(2px 2px at 8% 58%, rgba(255,255,255,.6) 50%, transparent 51%),
+      radial-gradient(24vmin 24vmin at 84% 6%, rgba(255,233,168,.35) 0%, transparent 70%),
+      linear-gradient(180deg, #55679F 0%, var(--night) 55%, #2C3968 100%);
+  }
+  .count-stage.theme-apple {
+    background:
+      radial-gradient(160% 80% at 20% 135%, var(--leaf-deep) 0 46%, transparent 46.5%),
+      radial-gradient(170% 90% at 85% 142%, var(--leaf) 0 55%, transparent 55.5%),
+      linear-gradient(180deg, #EAF6E4 0%, #DFF0D8 100%);
+  }
+  .count-stage.theme-fish {
+    background:
+      radial-gradient(160% 70% at 30% 140%, #4FAECF 0 50%, transparent 50.5%),
+      radial-gradient(170% 80% at 78% 148%, #8AD2E8 0 58%, transparent 58.5%),
+      linear-gradient(180deg, #D8F1FA 0%, #BFE8F4 100%);
+  }
+  .count-item {
+    position: absolute;
+    font-size: 54px;
+    line-height: 1;
+    padding: 6px;
+    transform: translate(-50%, -50%);
+    transition: transform .2s, filter .2s;
+    /* 注意：不能复用 bob——动画会整体覆盖 transform，丢失居中偏移 */
+    animation: count-bob 3s ease-in-out infinite;
+    /* 错峰用变量传递，避免内联 delay 污染 cheer 等后续动画 */
+    animation-delay: var(--float-delay, 0s);
+  }
+  .count-item.counted {
+    animation: none;
+    transform: translate(-50%, -50%) scale(1.22);
+    filter: drop-shadow(0 0 10px #fff);
+  }
+  .count-badge {
+    position: absolute;
+    top: -8px; right: -8px;
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    background: var(--coral);
+    color: #fff;
+    font-size: 20px; font-weight: 800;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 0 var(--coral-deep);
+    /* 弹簧式"盖章"入场 */
+    animation: badge-in .3s cubic-bezier(.34, 1.56, .64, 1) backwards;
+  }
+  .count-choices {
+    display: flex; justify-content: center; gap: 20px;
+    padding-top: 14px;
+  }
+  .num-btn {
+    width: 86px; height: 86px;
+    border-radius: 26px;
+    background: #fff;
+    font-family: var(--font-num);
+    font-size: 42px; font-weight: 800;
+    border-bottom: 5px solid var(--line);
+    box-shadow: 0 6px 14px rgba(84,69,55,.14);
+    transition: transform .12s, border-bottom-width .12s;
+    /* 与其他场景一致的错峰弹入；right/wrong 简写会自然重置延迟 */
+    animation: rise-in .4s cubic-bezier(.34, 1.56, .64, 1) backwards;
+    animation-delay: var(--in-delay, 0s);
+  }
+  .num-btn:active { transform: translateY(4px); border-bottom-width: 1px; }
+  .num-btn.right { background: #A8E29C; border-bottom-color: #74B767; animation: pop .6s; }
+  .num-btn.wrong { background: #FFD1CB; border-bottom-color: #E9A198; animation: shake .45s; }
+
+  /* ========== 听指令 ========== */
+  .cmd-header {
+    display: flex; align-items: center; justify-content: center; gap: 12px;
+    padding: 4px 0 14px;
+  }
+  /* 题干大卡可点重听 */
+  .count-display, .cmd-text { cursor: pointer; transition: transform .12s; }
+  .count-display:active, .cmd-text:active { transform: scale(.97); }
+  .cmd-text {
+    font-family: var(--font-display);
+    font-size: 22px; font-weight: 800;
+    background: var(--paper);
+    border: 2px solid var(--line);
+    border-radius: 18px;
+    padding: 12px 20px;
+    box-shadow: var(--shadow);
+    text-align: center;
+    max-width: 70vw;
+  }
+  /* 三个问答场景与动物/数学舞台同款"白纸相框"，按场景配底色 */
+  .cmd-stage {
+    flex: 1;
+    display: flex; flex-wrap: wrap; align-content: center; justify-content: center;
+    gap: 22px;
+    padding: 20px 14px;
+    border-radius: var(--card-radius);
+    box-shadow: inset 0 0 0 6px #fff, var(--shadow);
+    overflow: hidden;
+  }
+  #cmd-stage {
+    background:
+      radial-gradient(130% 75% at 18% 120%, #F0B564 0 52%, transparent 52.5%),
+      radial-gradient(140% 85% at 85% 128%, #F8D399 0 60%, transparent 60.5%),
+      linear-gradient(180deg, #FDEED3, #FBE3BD);
+  }
+  #lit-stage {
+    background:
+      radial-gradient(130% 75% at 16% 120%, #E88C6B 0 52%, transparent 52.5%),
+      radial-gradient(140% 85% at 86% 128%, #F5B79A 0 60%, transparent 60.5%),
+      linear-gradient(180deg, #FDE8DC, #FBD9C6);
+  }
+  #logic-stage {
+    background:
+      radial-gradient(3px 3px at 24% 20%, #FFF 50%, transparent 51%),
+      radial-gradient(2px 2px at 76% 14%, #FFF 50%, transparent 51%),
+      radial-gradient(130% 75% at 20% 122%, #7FB8DC 0 52%, transparent 52.5%),
+      radial-gradient(140% 85% at 84% 130%, #B3DCF0 0 60%, transparent 60.5%),
+      linear-gradient(180deg, #E4F3FB, #CFE9F7);
+  }
+  .cmd-item {
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    min-width: 120px;
+    padding: 16px 14px;
+    border-radius: 22px;
+    background: #fff;
+    border-bottom: 5px solid var(--line);
+    box-shadow: 0 6px 14px rgba(84,69,55,.12);
+    transition: transform .12s, border-bottom-width .12s;
+    /* 入场错峰弹入；延迟走变量，right/shake 的简写会自然重置 */
+    animation: rise-in .4s cubic-bezier(.34, 1.56, .64, 1) backwards;
+    animation-delay: var(--in-delay, 0s);
+  }
+  .cmd-item:active { transform: translateY(4px); border-bottom-width: 1px; }
+  .cmd-item.right { background: #A8E29C; border-bottom-color: #74B767; animation: pop .6s; }
+  .cmd-item.shake { animation: shake .45s; }
+  .cmd-emoji { font-size: 64px; line-height: 1.1; }
+  .cmd-emoji.big { font-size: 104px; }
+  .cmd-emoji.small { font-size: 46px; }
+  .cmd-label { font-family: var(--font-display); font-size: 17px; font-weight: 800; }
+  .judge-figure {
+    width: 100%;
+    text-align: center;
+    font-size: 96px;
+    padding-bottom: 6px;
+    animation: rise-in .4s cubic-bezier(.34, 1.56, .64, 1) backwards;
+  }
+  .judge-btn {
+    width: 140px; height: 120px;
+    border-radius: 26px;
+    font-family: var(--font-display);
+    font-size: 24px; font-weight: 800;
+    color: #fff;
+    box-shadow: 0 6px 14px rgba(84,69,55,.18);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+    transition: transform .12s, border-bottom-width .12s;
+    animation: rise-in .4s cubic-bezier(.34, 1.56, .64, 1) backwards;
+    animation-delay: var(--in-delay, 0s);
+  }
+  .judge-btn:active { transform: translateY(4px); border-bottom-width: 1px; }
+  .judge-btn .judge-icon { font-size: 44px; }
+  .judge-yes { background: #6DBE60; border-bottom: 6px solid #529148; }
+  .judge-no  { background: #EF7A6D; border-bottom: 6px solid #C75A4E; }
+  .judge-btn.right { animation: pop .6s; }
+  .judge-btn.shake { animation: shake .45s; }
+
+  /* ========== 识字乐园 ========== */
+  .lit-card {
+    width: 100%;
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    padding-bottom: 8px;
+    animation: rise-in .4s cubic-bezier(.34, 1.56, .64, 1) backwards;
+  }
+  .lit-pinyin { font-size: 19px; color: var(--ink-soft); letter-spacing: 2px; }
+  .lit-char {
+    font-family: var(--font-display);
+    font-size: 84px; font-weight: 800; line-height: 1.2;
+    background: #fff;
+    border-radius: 28px;
+    border-bottom: 6px solid var(--line);
+    box-shadow: var(--shadow);
+    padding: 8px 34px;
+  }
+  .lit-figure { font-size: 96px; line-height: 1.2; }
+  .cmd-emoji.lit-choice { font-family: var(--font-display); font-weight: 800; }
+
+  /* ========== 魔法逻辑 ========== */
+  .pattern-row {
+    width: 100%;
+    display: flex; justify-content: center; align-items: center; gap: 8px;
+    padding-bottom: 12px;
+    animation: rise-in .4s cubic-bezier(.34, 1.56, .64, 1) backwards;
+  }
+  .pattern-slot {
+    width: 58px; height: 58px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 40px;
+    background: rgba(255,255,255,.75);
+    border-radius: 14px;
+    box-shadow: 0 3px 8px rgba(84,69,55,.10);
+  }
+  .pattern-q {
+    border: 3px dashed var(--sun-deep);
+    background: #FFF3D8;
+    font-size: 30px; font-weight: 800;
+    color: var(--sun-deep);
+  }
+  /* 谜底"跳进"空格的揭示时刻 */
+  .pattern-slot.reveal { animation: pop .55s cubic-bezier(.34, 1.56, .64, 1); background: #FFF3D8; }
+
+  /* ========== 数学岛：比多少 / 小加法 ========== */
+  .count-stage.compare-mode {
+    display: flex; gap: 14px; padding: 14px;
+    align-items: stretch;
+  }
+  .compare-side {
+    flex: 1;
+    background: rgba(255,255,255,.4);
+    border: 3px solid rgba(255,255,255,.8);
+    border-radius: 20px;
+    display: flex; flex-wrap: wrap; align-content: center; justify-content: center;
+    gap: 6px;
+    font-size: 38px;
+    transition: transform .12s;
+    cursor: pointer;
+    animation: rise-in .4s cubic-bezier(.34, 1.56, .64, 1) backwards;
+    animation-delay: var(--in-delay, 0s);
+  }
+  .compare-side:active { transform: scale(.97); }
+  .compare-side.right { background: #A8E29C; animation: pop .6s; }
+  .compare-side.shake { animation: shake .45s; }
+  .count-stage.add-mode {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 14px; padding: 18px;
+  }
+  .add-row {
+    display: flex; align-items: center; justify-content: center; flex-wrap: wrap;
+    gap: 6px;
+    font-size: 40px;
+    animation: rise-in .4s cubic-bezier(.34, 1.56, .64, 1) backwards;
+  }
+  .add-op {
+    font-family: var(--font-num);
+    font-size: 44px; font-weight: 800;
+    color: var(--ink);
+    background: rgba(255,255,255,.8);
+    border-radius: 12px;
+    padding: 2px 12px;
+    margin: 0 6px;
+  }
+  .add-item { font-size: 40px; line-height: 1; padding: 2px; transition: transform .15s, filter .15s; }
+  .add-item.counted { transform: scale(1.18); filter: drop-shadow(0 0 8px #fff); }
+  /* 减法：被拿走的物品划掉变淡 */
+  .sub-item { position: relative; }
+  .sub-item.taken { opacity: .35; transition: opacity .4s; }
+  .sub-item.taken::after {
+    content: '✖';
+    position: absolute;
+    left: 50%; top: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 30px; font-weight: 800;
+    color: #E4685C;
+  }
+  /* 进位加法：十格阵（凑十法） */
+  .ten-frame {
+    display: grid;
+    grid-template-columns: repeat(5, 46px);
+    grid-auto-rows: 46px;
+    gap: 4px;
+    background: rgba(255,255,255,.55);
+    border-radius: 14px;
+    padding: 8px;
+  }
+  .frame-cell {
+    display: flex; align-items: center; justify-content: center;
+    font-size: 30px; line-height: 1;
+    border: 2px dashed rgba(84,69,55,.25);
+    border-radius: 10px;
+  }
+  .frame-cell.filled { border-style: solid; border-color: rgba(84,69,55,.15); background: #fff; }
+  .carry-group { display: flex; flex-wrap: wrap; gap: 6px; max-width: 200px; }
+  /* 待"借"去凑十的那几个：太阳色虚线高亮 */
+  .carry-borrow { outline: 3px dashed var(--sun-deep); outline-offset: 2px; border-radius: 12px; background: #FFF3D8; }
+
+  /* ========== 勋章墙 ========== */
+  .medal-title {
+    font-family: var(--font-display);
+    text-align: center;
+    font-size: 30px;
+    margin: 16px 0 2px;
+  }
+  .medal-sub { text-align: center; color: var(--ink-soft); font-size: 16px; margin: 0 0 14px; }
+  .medal-grid {
+    display: flex; flex-wrap: wrap; justify-content: center; gap: 22px;
+    padding: 10px 10px 30px;
+  }
+  .medal-card {
+    width: min(220px, 80vw);
+    background: #fff;
+    border-radius: 22px;
+    border-bottom: 6px solid var(--line);
+    box-shadow: var(--shadow);
+    padding: 20px 16px;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    /* 与首页封面卡一致：常驻微倾 + 错峰弹入 */
+    transform: rotate(var(--tilt, 0deg));
+    animation: rise-in .45s cubic-bezier(.34, 1.56, .64, 1) backwards;
+    animation-delay: var(--in-delay, 0s);
+  }
+  .medal-emoji { font-size: 64px; }
+  .medal-card.tier-0 .medal-emoji { filter: grayscale(1); opacity: .4; }
+  .medal-name { font-family: var(--font-display); font-size: 22px; font-weight: 800; }
+  .medal-tier {
+    font-size: 15px; font-weight: 800;
+    border-radius: 999px;
+    padding: 3px 14px;
+    background: #F1EAE0; color: var(--ink-soft);
+  }
+  .medal-card.tier-1 .medal-tier { background: #EFC9A8; color: #8A5A2B; }
+  .medal-card.tier-2 .medal-tier { background: #DDE3EA; color: #5B6B7E; }
+  .medal-card.tier-3 .medal-tier { background: #FFE59A; color: #8A6410; }
+  .medal-progress { font-size: 14px; color: var(--ink-soft); }
+
+  /* ========== 家长看板 ========== */
+  .parent-row {
+    display: flex; align-items: center; justify-content: space-between;
+    background: #fff;
+    border: 2px solid var(--line);
+    border-radius: 14px;
+    padding: 10px 14px;
+    font-size: 15px; font-weight: 700;
+    gap: 8px;
+  }
+  .parent-row .parent-stats { color: var(--ink-soft); font-weight: 400; font-size: 13px; text-align: right; }
+  .parent-reset {
+    font-size: 14px; font-weight: 700;
+    color: #C0554A;
+    background: #fff;
+    border: 2px solid var(--line);
+    border-radius: 12px;
+    padding: 8px 12px;
+  }
+  .voice-rec {
+    font-size: 12px; font-weight: 800;
+    color: #8A6410;
+    background: var(--sun);
+    border-radius: 999px;
+    padding: 2px 10px;
+    margin-left: 8px;
+    flex: none;
+  }
+
+  /* ========== 语音气泡 ========== */
+  /* 纸条便签风气泡 */
+  .bubble {
+    position: fixed;
+    left: 50%; bottom: 96px;
+    transform: translateX(-50%);
+    max-width: min(560px, 88vw);
+    background: var(--paper);
+    border: 2px solid var(--line);
+    border-radius: 22px 26px 20px 26px;
+    padding: 14px 20px;
+    font-size: 19px; font-weight: 700;
+    line-height: 1.7;
+    color: var(--ink);
+    box-shadow: 0 10px 24px rgba(84,69,55,.20);
+    pointer-events: none;
+    z-index: 50;
+    animation: bubble-in .25s;
+  }
+  .bubble::after {
+    content: "";
+    position: absolute;
+    left: 50%; bottom: -10px;
+    transform: translateX(-50%);
+    border: 10px solid transparent;
+    border-top-color: var(--paper);
+    border-bottom: none;
+  }
+  /* 收起时轻轻下沉淡出，与入场对称 */
+  .bubble.hide { animation: bubble-out .22s ease-in forwards; }
+  /* 窄屏：气泡移到顶栏下方，避免盖住正在交互的目标区 */
+  @media (max-width: 520px) {
+    .bubble { bottom: auto; top: 84px; }
+    .bubble::after { display: none; }
+  }
+
+  /* ========== 撒花与微粒 ========== */
+  #confetti-layer { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 99; }
+  .confetti {
+    position: fixed;
+    top: -44px;
+    animation: fall linear forwards;
+  }
+  /* 点击处星尘迸发 */
+  .tap-spark {
+    position: fixed;
+    z-index: 98;
+    pointer-events: none;
+    font-size: 14px;
+    transform: translate(-50%, -50%);
+    animation: spark-fly .6s ease-out forwards;
+  }
+  /* 答对后星星飞向计数框 */
+  .fly-star {
+    position: fixed;
+    z-index: 98;
+    pointer-events: none;
+    font-size: 34px;
+    transform: translate(-50%, -50%);
+    animation: fly-to-box .7s cubic-bezier(.3, .7, .4, 1) forwards;
+  }
+
+  /* ========== 动画 ========== */
+  @keyframes bob    { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+  @keyframes count-bob { 0%,100% { transform: translate(-50%, -50%) translateY(0); } 50% { transform: translate(-50%, -50%) translateY(-8px); } }
+  @keyframes pop    { 0% { transform: scale(1); } 40% { transform: scale(1.3); } 100% { transform: scale(1); } }
+  @keyframes shake  { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-9px); } 75% { transform: translateX(9px); } }
+  @keyframes fall   { to { transform: translateY(115vh) rotate(680deg); opacity: .85; } }
+  @keyframes bubble-in { from { opacity: 0; transform: translateX(-50%) translateY(10px); } }
+  /* 数星星主题里的星星不做上下浮动，改闪烁 */
+  .count-stage.theme-star .count-item { animation: twinkle 2.2s ease-in-out infinite; animation-delay: var(--float-delay, 0s); }
+  .count-stage.theme-star .count-item.counted { animation: none; }
+  @keyframes twinkle { 0%,100% { opacity: 1; } 50% { opacity: .55; } }
+  @keyframes drift { from { transform: translateX(-14vw); } to { transform: translateX(114vw); } }
+  @keyframes screen-in  { from { opacity: 0; transform: translateY(8px); } }
+  @keyframes badge-in   { from { transform: scale(0); opacity: 0; } }
+  @keyframes fade-in    { from { opacity: 0; } }
+  @keyframes panel-in   { from { opacity: 0; transform: translate(-50%, -50%) scale(.92); } }
+  @keyframes bubble-out { to { opacity: 0; transform: translateX(-50%) translateY(8px); } }
+  @keyframes rise-in    { from { opacity: 0; transform: translateY(28px) scale(.92) rotate(var(--tilt, 0deg)); } }
+  @keyframes letter-in  { from { opacity: 0; transform: translateY(-34px) rotate(var(--r, 0deg)) scale(.5); } }
+  @keyframes wiggle     { 0%,100% { transform: rotate(0); } 20% { transform: rotate(9deg); } 45% { transform: rotate(-8deg); } 70% { transform: rotate(6deg); } }
+  @keyframes sun-pulse  { 0%,100% { box-shadow: 0 8px 18px rgba(227,159,47,.35); } 50% { box-shadow: 0 8px 28px rgba(227,159,47,.6); } }
+  @keyframes spark-fly  { to { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(.3); opacity: 0; } }
+  @keyframes fly-to-box { 55% { opacity: 1; } to { transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) scale(.4); opacity: 0; } }
+  /* 数完集体欢呼跳（特异度 (0,4,0) 且位于 theme-star 的 animation:none 之后，三主题均可播放） */
+  @keyframes count-cheer { 0%,100% { transform: translate(-50%, -50%) scale(1.22); } 40% { transform: translate(-50%, -50%) translateY(-14px) scale(1.32); } }
+  .count-stage .count-item.counted.cheer { animation: count-cheer .55s ease; }
+
+  /* ========== 音色选择面板 ========== */
+  .voice-overlay {
+    position: fixed; inset: 0;
+    background: rgba(84,69,55,.35);
+    z-index: 90;
+    animation: fade-in .2s ease-out;
+  }
+  .voice-panel {
+    position: fixed;
+    left: 50%; top: 50%;
+    transform: translate(-50%, -50%);
+    width: min(420px, 90vw);
+    max-height: calc(100dvh - 32px);
+    overflow-y: auto;
+    background: var(--paper);
+    border: 2px solid var(--line);
+    border-radius: var(--card-radius);
+    box-shadow: 0 18px 44px rgba(84,69,55,.30);
+    padding: 20px 18px 18px;
+    z-index: 91;
+    display: flex; flex-direction: column; gap: 12px;
+    animation: panel-in .3s cubic-bezier(.34, 1.56, .64, 1);
+  }
+  .voice-panel-title {
+    font-family: var(--font-display);
+    font-size: 21px; font-weight: 800;
+    text-align: center;
+  }
+  .voice-panel-sub { font-size: 14px; color: var(--ink-soft); text-align: center; margin-top: -6px; }
+  #voice-list, #parent-list { overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding: 2px; }
+  .voice-item {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    font-size: 16px; font-weight: 700;
+    text-align: left;
+    background: #fff;
+    border: 2px solid var(--line);
+    border-radius: 14px;
+    padding: 10px 14px;
+    transition: transform .12s;
+  }
+  .voice-item:active { transform: scale(.97); }
+  .voice-item.active { border-color: var(--sun-deep); background: #FFF3D8; }
+  .voice-item .voice-lang { font-size: 12px; color: var(--ink-soft); font-weight: 400; }
+  .voice-empty { font-size: 15px; color: var(--ink-soft); text-align: center; padding: 10px 4px; }
+  .collection-return { align-self: flex-start; margin: 10px 16px 0; padding: 9px 13px; border-radius: 12px; background: #ffffffcc; color: var(--ink); font-size: 14px; text-decoration: none; position: relative; z-index: 1; }
+  .voice-controls { flex-shrink: 0; background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 12px; }
+  .voice-rate-label { display: flex; justify-content: space-between; font-size: 15px; font-weight: 700; }
+  #voice-rate { width: 100%; height: 32px; accent-color: #ad7320; }
+  .voice-presets, .voice-preview { display: flex; gap: 8px; margin-top: 5px; }
+  .voice-presets button, .voice-preview button { min-height: 40px; padding: 8px; flex: 1; background: #fff4df; border-radius: 10px; font-size: 13px; }
+  .voice-presets button[aria-pressed="true"] { background: #f3d590; box-shadow: inset 0 0 0 2px #b68329; }
+  .voice-preview button { background: #dfeedd; }
+  #voice-status { color: #6c5c49; font-size: 12px; line-height: 1.5; min-height: 18px; margin: 7px 0 0; }
+  .voice-help { font-size: 12px; color: #6c5c49; line-height: 1.6; margin: 0; flex-shrink: 0; }
+  #voice-list { flex: 1; min-height: 72px; }
+  .voice-item { flex-shrink: 0; min-height: 48px; }
+  .voice-item > span:first-child { overflow-wrap: anywhere; }
+  .voice-item .voice-lang { flex-shrink: 0; text-align: right; white-space: pre-line; }
+  #btn-voice-close { flex-shrink: 0; }
+
+  /* 动效降级：尊重系统减少动态偏好 */
+  @media (prefers-reduced-motion: reduce) {
+    body::before, body::after { animation: none; }
+    .menu-emoji, .animal-emoji, .count-item { animation: none !important; }
+    .menu-card, .big-title span, .screen.active, .action-btn,
+    .cmd-item, .judge-btn, .judge-figure, .animal-btn,
+    .num-btn, .compare-side, .add-row, .animal-stage,
+    .medal-card, .lit-card, .pattern-row, .pattern-slot,
+    .count-badge, .voice-overlay, .voice-panel, .bubble { animation: none !important; }
+    .tap-spark, .fly-star, .confetti { display: none; }
+  }
+</style>
+</head>
+<body data-collection="true">
+
+<a id="collection-return" class="collection-return hidden" href="../">‹ 返回小游戏合集</a>
+
+<header>
+  <button id="btn-home" class="icon-btn hidden" aria-label="回到首页">🏠</button>
+  <div id="title-mini">🌞 宝宝益智乐园</div>
+  <div class="header-side">
+    <button id="btn-medals" class="icon-btn" aria-label="勋章墙">🏅</button>
+    <button id="btn-parent" class="icon-btn" aria-label="家长看板">📊</button>
+    <button id="btn-voice" class="icon-btn" aria-label="选择语音">🔈</button>
+    <div id="star-box">⭐ <span id="star-count">0</span></div>
+  </div>
+</header>
+
+<main>
+  <!-- 首页 -->
+  <section id="screen-home" class="screen active">
+    <h1 class="big-title" aria-label="宝宝益智乐园"><span>宝</span><span>宝</span><span>益</span><span>智</span><span>乐</span><span>园</span></h1>
+    <p class="subtitle">点一点，听一听，一起玩吧！</p>
+    <div class="menu">
+      <button class="menu-card" data-scene="animals">
+        <span class="menu-scene"><span class="menu-emoji">🦁</span></span>
+        <span class="menu-name">动物乐园</span>
+        <span class="menu-desc">认识小动物 · 找一找</span>
+      </button>
+      <button class="menu-card" data-scene="counting">
+        <span class="menu-scene"><span class="menu-emoji">⭐</span></span>
+        <span class="menu-name">数学岛</span>
+        <span class="menu-desc">数一数 · 比多少 · 小加法</span>
+      </button>
+      <button class="menu-card" data-scene="commands">
+        <span class="menu-scene"><span class="menu-emoji">👂</span></span>
+        <span class="menu-name">听指令</span>
+        <span class="menu-desc">听一听 · 点一点 · 对不对</span>
+      </button>
+      <button class="menu-card" data-scene="literacy">
+        <span class="menu-scene"><span class="menu-emoji">📖</span></span>
+        <span class="menu-name">识字乐园</span>
+        <span class="menu-desc">认字宝宝 · 看图选字</span>
+      </button>
+      <button class="menu-card" data-scene="logic">
+        <span class="menu-scene"><span class="menu-emoji">❄️</span></span>
+        <span class="menu-name">魔法逻辑</span>
+        <span class="menu-desc">找规律 · 找不同</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- 动物乐园 -->
+  <section id="screen-animals" class="screen">
+    <div class="habitat-tabs" id="habitat-tabs"></div>
+    <div id="seek-bar" class="seek-bar hidden">
+      <span>🔍</span><span id="seek-text"></span>
+      <button class="small-btn" id="btn-seek-repeat" aria-label="再听一遍">🔊</button>
+      <button class="small-btn" id="btn-seek-cancel" aria-label="退出找一找">✖️</button>
+    </div>
+    <div id="animal-stage" class="animal-stage"></div>
+    <div class="scene-actions">
+      <button id="btn-seek" class="action-btn">🔍 找一找</button>
+    </div>
+  </section>
+
+  <!-- 数一数 -->
+  <section id="screen-counting" class="screen">
+    <div class="count-header">
+      <div id="count-display" class="count-display"></div>
+      <button class="small-btn" id="btn-count-repeat" aria-label="再听一遍">🔊</button>
+    </div>
+    <div id="count-stage" class="count-stage"></div>
+    <div id="count-choices" class="count-choices hidden"></div>
+    <div class="scene-actions">
+      <button id="btn-count-next" class="action-btn hidden">🔄 再来一次</button>
+    </div>
+  </section>
+
+  <!-- 听指令 -->
+  <section id="screen-commands" class="screen">
+    <div class="cmd-header">
+      <div id="cmd-text" class="cmd-text"></div>
+      <button class="small-btn" id="btn-cmd-repeat" aria-label="再听一遍">🔊</button>
+    </div>
+    <div id="cmd-stage" class="cmd-stage"></div>
+    <div class="scene-actions">
+      <button id="btn-cmd-next" class="action-btn hidden">➡️ 下一题</button>
+    </div>
+  </section>
+
+  <!-- 识字乐园 -->
+  <section id="screen-literacy" class="screen">
+    <div class="cmd-header">
+      <div id="lit-text" class="cmd-text"></div>
+      <button class="small-btn" id="btn-lit-repeat" aria-label="再听一遍">🔊</button>
+    </div>
+    <div id="lit-stage" class="cmd-stage"></div>
+    <div class="scene-actions">
+      <button id="btn-lit-next" class="action-btn hidden">➡️ 下一题</button>
+    </div>
+  </section>
+
+  <!-- 魔法逻辑 -->
+  <section id="screen-logic" class="screen">
+    <div class="cmd-header">
+      <div id="logic-text" class="cmd-text"></div>
+      <button class="small-btn" id="btn-logic-repeat" aria-label="再听一遍">🔊</button>
+    </div>
+    <div id="logic-stage" class="cmd-stage"></div>
+    <div class="scene-actions">
+      <button id="btn-logic-next" class="action-btn hidden">➡️ 下一题</button>
+    </div>
+  </section>
+
+  <!-- 勋章墙 -->
+  <section id="screen-medals" class="screen">
+    <h2 class="medal-title">🏅 我的勋章墙</h2>
+    <p class="medal-sub">答对题目就能赢得勋章，铜牌、银牌、金牌等你来拿！</p>
+    <div class="medal-grid" id="medal-grid"></div>
+  </section>
+</main>
+
+<div id="bubble" class="bubble hidden"></div>
+<div id="voice-overlay" class="voice-overlay hidden"></div>
+<div id="parent-overlay" class="voice-overlay hidden"></div>
+<div id="parent-panel" class="voice-panel hidden" role="dialog" aria-label="家长看板">
+  <div class="voice-panel-title">📊 家长看板</div>
+  <div class="voice-panel-sub">各模块难度会按最近正确率自动升降（数学岛最高 L8）</div>
+  <div id="parent-list"></div>
+  <button id="btn-parent-reset" class="parent-reset">清空记录和星星</button>
+  <button id="btn-parent-close" class="action-btn">知道啦</button>
+</div>
+<div id="voice-panel" class="voice-panel hidden" role="dialog" aria-label="选择语音">
+  <div class="voice-panel-title">🔈 选个好听的声音</div>
+  <div class="voice-panel-sub">点击音色，听听哪个更喜欢</div>
+  <div class="voice-controls">
+    <label class="voice-rate-label" for="voice-rate">朗读速度 <output id="voice-rate-value" for="voice-rate">0.95×</output></label>
+    <input id="voice-rate" type="range" min="0.75" max="1.25" step="0.05" value="0.95" aria-label="朗读速度">
+    <div class="voice-presets"><button data-voice-rate="0.8">慢慢听</button><button data-voice-rate="0.95">自然说</button><button data-voice-rate="1.1">轻快读</button></div>
+    <div class="voice-preview"><button id="btn-voice-preview" aria-label="试听当前声音">▶ 试听</button><button id="btn-voice-stop">■ 停止试听</button></div>
+    <p id="voice-status" role="status" aria-live="polite"></p>
+  </div>
+  <div id="voice-list"></div>
+  <p class="voice-help">这里使用设备提供的中文声音。可在系统语音设置中下载优质中文音色，再回到这里试听。</p>
+  <button id="btn-voice-close" class="action-btn">就用这个啦</button>
+</div>
+<div id="confetti-layer"></div>
+
+<script>
+'use strict';
+
+/* ================= 工具函数 ================= */
+const $ = (sel) => document.querySelector(sel);
+const randInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+const pick = (arr) => arr[randInt(0, arr.length - 1)];
+const shuffle = (arr) => {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = randInt(0, i);
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+};
+const NUM_CN = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九', '十'];
+/* 计量语境下 2 读"两"（"二个"是病句；等式朗读仍用"二"），支持 0-20 */
+const numWord = (n) => (n === 2 ? '两' : numCN20(n));
+/* 0-20 的中文读法（进位加法用） */
+function numCN20(n) {
+  if (n <= 10) return NUM_CN[n];
+  if (n < 20) return '十' + NUM_CN[n - 10];
+  return '二十';
+}
+/* 过程性夸奖（夸努力与方法，不夸天赋） */
+const PRAISES = [
+  '太棒了！', '你想出来啦！', '好厉害呀！', '答对啦！', '真了不起！', '哇，真棒！',
+  '你做到啦！', '越想越明白啦！', '你看得真仔细！', '越来越厉害啦！',
+];
+const praise = () => pick(PRAISES);
+/* 答错时的安抚开场，替代千篇一律的"再想一想" */
+const SOOTHES = ['没关系，', '差一点点！', '嗯，再试一次，', '再想一想哦，'];
+const soothe = () => pick(SOOTHES);
+/* 连续答对计数（跨模块），3/5/10 时播连击彩蛋 */
+let correctStreak = 0;
+
+/* ================= 音效（WebAudio 合成，无音频文件） ================= */
+const Sfx = {
+  ctx: null,
+  ensure() {
+    try {
+      if (!this.ctx) {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (AC) this.ctx = new AC();
+      }
+      /* 覆盖 suspended 与 Safari 特有的 interrupted 状态（来电/切后台后恢复） */
+      if (this.ctx && this.ctx.state !== 'running') this.ctx.resume();
+    } catch (e) { /* 无音效环境降级为静音，不影响游戏 */ }
+  },
+  tone(freq, dur, type, delay, vol) {
+    if (!this.ctx) return;
+    try {
+      const t0 = this.ctx.currentTime + (delay || 0);
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = type || 'sine';
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(vol || 0.18, t0);
+      gain.gain.exponentialRampToValueAtTime(0.001, t0 + dur);
+      osc.connect(gain).connect(this.ctx.destination);
+      osc.start(t0);
+      osc.stop(t0 + dur + 0.02);
+    } catch (e) { /* 忽略音效错误 */ }
+  },
+  pop()   { this.tone(620, 0.09, 'triangle'); },
+  ding()  { this.tone(880, 0.12); this.tone(1320, 0.18, 'sine', 0.1); },
+  cheer() { [523, 659, 784, 1047].forEach((f, i) => this.tone(f, 0.16, 'triangle', i * 0.09)); },
+  /* 温和的下行双音"哦-哦"，比蜂鸣更友好 */
+  buzz()  { this.tone(392, 0.12, 'sine', 0, 0.12); this.tone(330, 0.18, 'sine', 0.12, 0.10); },
+};
+
+/* ================= 语音（Web Speech API + 文字气泡降级） ================= */
+const Speech = {
+  enabled: 'speechSynthesis' in window,
+  voice: null,
+  zhVoices: [],
+  savedName: null,
+  savedURI: null,
+  rate: 0.95,
+  utterances: [],
+  init() {
+    try {
+      this.savedName = localStorage.getItem('kidgame_voice') || null;
+      this.savedURI = localStorage.getItem('kidgame_voice_uri') || null;
+      const savedRate = Number(localStorage.getItem('kidgame_speech_rate'));
+      if (Number.isFinite(savedRate) && savedRate >= 0.75 && savedRate <= 1.25) this.rate = savedRate;
+    } catch (e) { /* 隐私模式仍可使用本次选择 */ }
+    if (!this.enabled) return;
+    const refresh = () => {
+      try {
+        const voices = speechSynthesis.getVoices();
+        if (!voices.length) return;
+        this.zhVoices = voices.filter(v => /^(zh|cmn)(?:[-_]|$)/i.test(v.lang))
+          .sort((a, b) => this.score(b) - this.score(a));
+        const saved = this.zhVoices.find(v => this.savedURI && v.voiceURI === this.savedURI)
+          || this.zhVoices.find(v => this.savedName && v.name === this.savedName);
+        this.voice = saved || this.zhVoices[0] || null;
+        const panel = document.querySelector('#voice-panel');
+        if (panel && !panel.classList.contains('hidden')) renderVoiceList();
+      } catch (e) { /* 默认语音仍由浏览器选择 */ }
+    };
+    refresh();
+    speechSynthesis.addEventListener('voiceschanged', refresh);
+  },
+  /* 依据系统音色的名称与地区排序，实际听感由设备提供，保留家长的手动选择。 */
+  score(v) {
+    const name = (v.name || '') + ' ' + (v.voiceURI || '');
+    let score = /(?:CN|Hans)/i.test(v.lang) ? 40 : 0;
+    if (/Premium|优质/i.test(name)) score += 100;
+    else if (/Enhanced|增强/i.test(name)) score += 80;
+    else if (/Natural|Neural|自然|神经/i.test(name)) score += 70;
+    else if (/Google/i.test(name)) score += 35;
+    else if (/Siri/i.test(name)) score += 25;
+    if (/Tingting|婷婷/i.test(name)) score += 5;
+    if (/Eddy|Flo|Grandma|Grandpa|Reed|Rocko|Sandy|Shelley|Albert|Bahh|Bells|Boing|Bubbles|Cellos|Wobble|Whisper|Organ|Superstar|Trinoids|Zarvox|Jester|Bad News|Good News/i.test(name)) score -= 1000;
+    return score;
+  },
+  use(id) {
+    const voice = this.zhVoices.find(v => v.voiceURI === id) || this.zhVoices.find(v => v.name === id);
+    if (!voice) return;
+    this.voice = voice;
+    this.savedName = voice.name;
+    this.savedURI = voice.voiceURI;
+    try {
+      localStorage.setItem('kidgame_voice', voice.name);
+      localStorage.setItem('kidgame_voice_uri', voice.voiceURI);
+    } catch (e) { /* 本次选择已生效，存储不可用时不持久化 */ }
+  },
+  setRate(value) {
+    const rate = Number(value);
+    if (!Number.isFinite(rate)) return;
+    this.rate = Math.round(Math.min(1.25, Math.max(0.75, rate)) * 20) / 20;
+    try { localStorage.setItem('kidgame_speech_rate', String(this.rate)); } catch (e) { /* 本次语速仍生效 */ }
+  },
+  duration(text) { return Math.max(2600, text.length * 260 * 0.92 / this.rate); },
+};
+
+let speakToken = 0;
+let bubbleTimer = null;
+/* 一次性场景问候：挂在进场后第一句语音前 */
+let sceneGreeting = '';
+
+let bubbleOutTimer = null;
+function showBubble(text) {
+  const el = $('#bubble');
+  if (bubbleOutTimer) { clearTimeout(bubbleOutTimer); bubbleOutTimer = null; }
+  el.classList.remove('hidden', 'hide');
+  el.textContent = text;
+  if (bubbleTimer) clearTimeout(bubbleTimer);
+  bubbleTimer = setTimeout(hideBubble, Speech.duration(text));
+}
+function hideBubble() {
+  const el = $('#bubble');
+  if (bubbleTimer) { clearTimeout(bubbleTimer); bubbleTimer = null; }
+  if (el.classList.contains('hidden') || el.classList.contains('hide')) return;
+  /* 轻轻下沉淡出后再隐藏，与入场对称 */
+  el.classList.add('hide');
+  bubbleOutTimer = setTimeout(() => {
+    el.classList.add('hidden');
+    el.classList.remove('hide');
+    bubbleOutTimer = null;
+  }, 220);
+}
+
+/* 保留连续语句的语境，让音色自行处理停顿。较长介绍按完整句分段。 */
+function splitSentences(text) {
+  const sentences = text.match(/[^。！？；]+[。！？；]?/g) || [];
+  const parts = [];
+  let current = '';
+  for (const sentence of sentences) {
+    if (current && current.length + sentence.length > 100) {
+      parts.push(current.trim());
+      current = '';
+    }
+    current += sentence;
+  }
+  if (current.trim()) parts.push(current.trim());
+  return parts;
+}
+
+function voiceStatus(text) {
+  const status = document.querySelector('#voice-status');
+  if (status) status.textContent = text;
+}
+
+/* 取消旧播报后仅保留最新一条，切换音色和快速点击不会把旧题排在队尾。 */
+function speak(text, opts) {
+  opts = opts || {};
+  if (sceneGreeting && !opts.preview) {
+    text = sceneGreeting + text;
+    sceneGreeting = '';
+  }
+  if (!opts.noBubble) showBubble(text);
+  if (!Speech.enabled) {
+    voiceStatus('当前浏览器不支持朗读，可继续看文字和玩游戏。');
+    return;
+  }
+  const token = ++speakToken;
+  try { speechSynthesis.cancel(); } catch (e) { /* 仍尝试播放本条 */ }
+  Speech.utterances = [];
+  setTimeout(() => {
+    if (token !== speakToken) return;
+    try {
+      const parts = splitSentences(text);
+      Speech.utterances = parts.map((part, index) => {
+        const u = new SpeechSynthesisUtterance(part);
+        u.lang = Speech.voice?.lang || 'zh-CN';
+        u.rate = opts.rate != null ? opts.rate : Speech.rate;
+        u.pitch = opts.pitch != null ? opts.pitch : 1;
+        if (Speech.voice) u.voice = Speech.voice;
+        u.onstart = () => { if (token === speakToken) voiceStatus(opts.preview ? '正在试听' : '正在朗读'); };
+        u.onend = () => {
+          if (token === speakToken && index === parts.length - 1) {
+            Speech.utterances = [];
+            voiceStatus(opts.preview ? '试听结束，可以换个声音比较。' : '');
+          }
+        };
+        u.onerror = (event) => {
+          if (token !== speakToken || event.error === 'canceled' || event.error === 'interrupted') return;
+          stopSpeak();
+          voiceStatus('没有播放成功，请换个声音或再次点击试听。');
+        };
+        return u;
+      });
+      Speech.utterances.forEach(u => speechSynthesis.speak(u));
+    } catch (e) { voiceStatus('当前声音未能播放，请选择其他音色。'); }
+  }, 60);
+}
+function stopSpeak() {
+  speakToken++;
+  Speech.utterances = [];
+  if (Speech.enabled) {
+    try { speechSynthesis.cancel(); } catch (e) { /* 页面仍保留题目文字 */ }
+  }
+}
+
+/* 成功语音统一出口：如有新勋章，衔接在表扬句后同队列播报（不用定时器，杜绝互相掐断）；
+   3/5/10 连击时加播连击彩蛋；返回按文本长度估算的播报时长（宁长勿短），
+   供自动换题动态排布——短表扬快换题，长讲解不被掐 */
+function speakSuccess(text) {
+  /* 开场二选一：连击彩蛋或随机夸奖，不叠播（"哇！……哇，真棒！"很别扭） */
+  const opening = [3, 5, 10].includes(correctStreak)
+    ? ('哇！连续答对' + NUM_CN[correctStreak] + '题！')
+    : (praise() + ' ');
+  let full = opening + text;
+  const medal = pendingMedalText;
+  pendingMedalText = null;
+  if (medal) full = full + ' ' + medal;
+  speak(full);
+  return Speech.duration(full);
+}
+
+/* ================= 奖励星星 ================= */
+let stars = 0;
+function loadStars() {
+  try { stars = parseInt(localStorage.getItem('kidgame_stars'), 10) || 0; } catch (e) { stars = 0; }
+  $('#star-count').textContent = stars;
+}
+function addStar() {
+  stars++;
+  try { localStorage.setItem('kidgame_stars', String(stars)); } catch (e) { /* 隐私模式下不持久化 */ }
+  $('#star-count').textContent = stars;
+  const box = $('#star-box');
+  box.classList.remove('pop');
+  void box.offsetWidth; /* 重置动画 */
+  box.classList.add('pop');
+}
+
+/* ================= 学习进度与自适应难度 ================= */
+/* 各模块最大等级：数学岛 8 级（数数→比多少→加法→减法→不进位加减→进位加法→退位减法→应用题），其余 3 级 */
+const MODULE_MAX_LV = { math: 8, literacy: 3, logic: 3, listen: 3, animal: 3 };
+
+const Progress = {
+  data: null,
+  modules: ['math', 'literacy', 'logic', 'listen', 'animal'],
+  blank() { return { lv: 1, recent: [], correct: 0, total: 0, medal: 0 }; },
+  load() {
+    let saved = null;
+    try { saved = JSON.parse(localStorage.getItem('kidgame_progress') || 'null'); } catch (e) { saved = null; }
+    this.data = {};
+    this.modules.forEach(mod => {
+      const s = (saved && typeof saved === 'object' && saved[mod]) || {};
+      const b = this.blank();
+      const maxLv = MODULE_MAX_LV[mod] || 3;
+      this.data[mod] = {
+        lv: (Number.isInteger(s.lv) && s.lv >= 1 && s.lv <= maxLv) ? s.lv : b.lv,
+        recent: Array.isArray(s.recent) ? s.recent.slice(-10) : [],
+        correct: Number.isFinite(s.correct) && s.correct >= 0 ? s.correct : 0,
+        total: Number.isFinite(s.total) && s.total >= 0 ? s.total : 0,
+        medal: [0, 1, 2, 3].includes(s.medal) ? s.medal : 0,
+      };
+    });
+  },
+  save() { try { localStorage.setItem('kidgame_progress', JSON.stringify(this.data)); } catch (e) { /* 隐私模式下不持久化 */ } },
+  get(mod) { return this.data[mod]; },
+  /* 每回合只记首次作答；最近 ≥6 题正确率 ≥80% 升级、≤40% 降级（ZPD 自适应） */
+  record(mod, ok) {
+    const m = this.data[mod];
+    if (!m) return;
+    correctStreak = ok ? correctStreak + 1 : 0; /* 跨模块连击 */
+    m.total++;
+    if (ok) m.correct++;
+    m.recent.push(ok ? 1 : 0);
+    if (m.recent.length > 10) m.recent.shift();
+    if (m.recent.length >= 6) {
+      const rate = m.recent.reduce((a, b) => a + b, 0) / m.recent.length;
+      if (rate >= 0.8 && m.lv < (MODULE_MAX_LV[mod] || 3)) { m.lv++; m.recent = []; }
+      else if (rate <= 0.4 && m.lv > 1) { m.lv--; m.recent = []; }
+    }
+    /* 家长看板总览数据（独立 key，避开 load 的模块白名单） */
+    try {
+      const meta = JSON.parse(localStorage.getItem('kidgame_meta') || '{}');
+      meta.last = Date.now();
+      if (correctStreak > (meta.best || 0)) meta.best = correctStreak;
+      localStorage.setItem('kidgame_meta', JSON.stringify(meta));
+    } catch (e) { /* 忽略 */ }
+    this.save();
+    Medals.check(mod);
+  },
+};
+
+/* ================= 勋章体系（孩子喜欢的英雄原型主题，不使用版权素材） ================= */
+const MEDALS = {
+  math:     { name: '光之勇士', emoji: '⚡', desc: '数学岛' },
+  literacy: { name: '小神童',   emoji: '🔥', desc: '识字乐园' },
+  logic:    { name: '冰雪魔法', emoji: '❄️', desc: '魔法逻辑' },
+};
+const MEDAL_TIERS = [
+  { need: 10, label: '铜牌' },
+  { need: 25, label: '银牌' },
+  { need: 50, label: '金牌' },
+];
+/* 新获勋章的待播文案：由 speakSuccess 衔接在表扬语音后播报 */
+let pendingMedalText = null;
+const Medals = {
+  tierOf(correct) {
+    let t = 0;
+    MEDAL_TIERS.forEach((tier, i) => { if (correct >= tier.need) t = i + 1; });
+    return t;
+  },
+  check(mod) {
+    if (!MEDALS[mod]) return;
+    const m = Progress.get(mod);
+    const t = this.tierOf(m.correct);
+    if (t > m.medal) {
+      m.medal = t;
+      Progress.save();
+      /* 不用定时器：记下待播文案，由本次答对的 speakSuccess 同队列衔接播报 */
+      pendingMedalText = '哇！你赢得了' + MEDALS[mod].name + MEDAL_TIERS[t - 1].label + '勋章！去勋章墙看看吧！';
+    }
+  },
+};
+
+function renderMedalWall() {
+  const grid = $('#medal-grid');
+  grid.innerHTML = '';
+  Object.keys(MEDALS).forEach((mod, i) => {
+    const info = MEDALS[mod];
+    const m = Progress.get(mod);
+    const tier = m.medal;
+    const card = document.createElement('div');
+    card.className = 'medal-card tier-' + tier;
+    card.style.setProperty('--tilt', (i % 2 ? 1.2 : -1.2) + 'deg');
+    card.style.setProperty('--in-delay', (i * 0.1) + 's');
+    const next = MEDAL_TIERS[Math.min(tier, 2)];
+    const progressText = tier >= 3 ? '已经是金牌啦！' : ('再答对 ' + Math.max(0, next.need - m.correct) + ' 题升' + next.label);
+    card.innerHTML =
+      '<span class="medal-emoji">' + info.emoji + '</span>' +
+      '<span class="medal-name">' + info.name + '</span>' +
+      '<span class="medal-tier">' + (tier === 0 ? '还没获得' : MEDAL_TIERS[tier - 1].label) + '</span>' +
+      '<span class="medal-progress">' + info.desc + ' · 已答对 ' + m.correct + ' 题</span>' +
+      '<span class="medal-progress">' + progressText + '</span>';
+    grid.appendChild(card);
+  });
+}
+function enterMedals() {
+  showScreen('medals');
+  renderMedalWall();
+  speak('这是你的勋章墙！多多闯关，把光之勇士、小神童和冰雪魔法的金牌都收集起来吧！');
+}
+
+/* ================= 家长看板 ================= */
+function renderParentList() {
+  const names = { math: '数学岛', literacy: '识字乐园', logic: '魔法逻辑', listen: '听指令', animal: '动物乐园' };
+  const leveled = ['math', 'literacy', 'logic'];
+  const list = $('#parent-list');
+  list.innerHTML = '';
+  /* 总览行：上次游玩 + 最高连击 */
+  let meta = {};
+  try { meta = JSON.parse(localStorage.getItem('kidgame_meta') || '{}'); } catch (e) { meta = {}; }
+  if (meta.last || meta.best) {
+    const d = meta.last ? new Date(meta.last) : null;
+    const when = d
+      ? ((d.getMonth() + 1) + '月' + d.getDate() + '日 ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'))
+      : '—';
+    const sum = document.createElement('div');
+    sum.className = 'parent-row';
+    sum.innerHTML = '<span>上次游玩 ' + when + '</span>' +
+      '<span class="parent-stats">最高连击 ' + (meta.best || 0) + ' 题</span>';
+    list.appendChild(sum);
+  }
+  Object.keys(names).forEach(mod => {
+    const m = Progress.get(mod);
+    const rate = m.total ? Math.round(m.correct / m.total * 100) : 0;
+    const medal = (MEDALS[mod] && m.medal > 0)
+      ? (' · ' + MEDALS[mod].emoji + MEDAL_TIERS[m.medal - 1].label)
+      : '';
+    const row = document.createElement('div');
+    row.className = 'parent-row';
+    row.innerHTML = '<span>' + names[mod] + (leveled.includes(mod) ? ' · L' + m.lv : '') + medal + '</span>' +
+      '<span class="parent-stats">答对 ' + m.correct + ' / ' + m.total + ' 题' + (m.total ? '（' + rate + '%）' : '') + '</span>';
+    list.appendChild(row);
+  });
+  const tip = document.createElement('div');
+  tip.className = 'voice-empty';
+  tip.textContent = '小提示：陪玩时请孩子先大声说出答案再点击，学习效果最好；正确率高时会自动出更难的题。';
+  list.appendChild(tip);
+}
+function openParentPanel() {
+  clearAutoNext();
+  stopSpeak();
+  renderParentList();
+  $('#parent-overlay').classList.remove('hidden');
+  $('#parent-panel').classList.remove('hidden');
+}
+/* 清空按钮的武装态（双击确认），关面板时必须复位 */
+let resetArmed = false;
+let resetTimer = null;
+function disarmReset() {
+  resetArmed = false;
+  if (resetTimer) { clearTimeout(resetTimer); resetTimer = null; }
+  const btn = $('#btn-parent-reset');
+  if (btn) btn.textContent = '清空记录和星星';
+}
+function closeParentPanel() {
+  $('#parent-overlay').classList.add('hidden');
+  $('#parent-panel').classList.add('hidden');
+  disarmReset();
+}
+
+/* ================= 撒花庆祝 ================= */
+function confetti() {
+  /* 尊重"减弱动态"偏好：跳过全屏撒花（最剧烈的动效） */
+  try {
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  } catch (e) { /* 忽略 */ }
+  const layer = $('#confetti-layer');
+  const emojis = ['🎉', '⭐', '🎈', '✨', '🌟', '🎊'];
+  for (let i = 0; i < 26; i++) {
+    const s = document.createElement('span');
+    s.className = 'confetti';
+    s.textContent = pick(emojis);
+    s.style.left = (Math.random() * 100) + 'vw';
+    s.style.fontSize = (18 + Math.random() * 22) + 'px';
+    s.style.animationDelay = (Math.random() * 0.4) + 's';
+    s.style.animationDuration = (1.6 + Math.random() * 1.4) + 's';
+    layer.appendChild(s);
+    setTimeout(() => s.remove(), 3800);
+  }
+}
+/* 点击处星尘迸发 */
+function tapBurst(x, y) {
+  const layer = $('#confetti-layer');
+  for (let i = 0; i < 6; i++) {
+    const s = document.createElement('span');
+    s.className = 'tap-spark';
+    s.textContent = i % 2 ? '✨' : '⭐';
+    const angle = (i / 6) * Math.PI * 2 + Math.random() * 0.6;
+    const dist = 22 + Math.random() * 22;
+    s.style.left = x + 'px';
+    s.style.top = y + 'px';
+    s.style.setProperty('--dx', (Math.cos(angle) * dist) + 'px');
+    s.style.setProperty('--dy', (Math.sin(angle) * dist) + 'px');
+    layer.appendChild(s);
+    setTimeout(() => s.remove(), 700);
+  }
+}
+
+/* 星星从答对处飞进右上角计数框 */
+function flyStarTo(x, y) {
+  const box = $('#star-box').getBoundingClientRect();
+  const s = document.createElement('span');
+  s.className = 'fly-star';
+  s.textContent = '⭐';
+  s.style.left = x + 'px';
+  s.style.top = y + 'px';
+  s.style.setProperty('--tx', (box.left + box.width / 2 - x) + 'px');
+  s.style.setProperty('--ty', (box.top + box.height / 2 - y) + 'px');
+  $('#confetti-layer').appendChild(s);
+  setTimeout(() => s.remove(), 800);
+}
+
+function celebrate(fromEl) {
+  Sfx.cheer();
+  confetti();
+  /* 轻微震动反馈（支持的设备上，渐进增强） */
+  try { if (navigator.vibrate) navigator.vibrate(35); } catch (e) { /* 忽略 */ }
+  let x = window.innerWidth / 2;
+  let y = window.innerHeight / 2;
+  if (fromEl && fromEl.getBoundingClientRect) {
+    const r = fromEl.getBoundingClientRect();
+    x = r.left + r.width / 2;
+    y = r.top + r.height / 2;
+  }
+  flyStarTo(x, y);
+  /* 星星抵达计数框时再入账，叮一声 */
+  setTimeout(() => { addStar(); Sfx.ding(); }, 650);
+}
+
+/* ================= 屏幕切换 ================= */
+let autoNextTimer = null;
+function clearAutoNext() {
+  if (autoNextTimer) { clearTimeout(autoNextTimer); autoNextTimer = null; }
+}
+function showScreen(id) {
+  clearAutoNext();
+  clearCountChoicesTimer();
+  clearCrossTimer();
+  stopSpeak();
+  hideBubble();
+  document.querySelectorAll('.screen').forEach(s => {
+    s.classList.toggle('active', s.id === 'screen-' + id);
+  });
+  $('#btn-home').classList.toggle('hidden', id === 'home');
+}
+
+/* ================= 场景一：动物乐园 ================= */
+const HABITATS = [
+  { id: 'grass',  name: '草原', emoji: '🌾', decors: ['🌤️', '🌾', '🌼'] },
+  { id: 'forest', name: '森林', emoji: '🌳', decors: ['🌳', '🍄', '🌿'] },
+  { id: 'farm',   name: '农场', emoji: '🏡', decors: ['🏡', '🌻', '🚜'] },
+  { id: 'ocean',  name: '海洋', emoji: '🌊', decors: ['🌊', '🐚', '⛵'] },
+];
+const ANIMALS = [
+  { habitat: 'grass',  name: '狮子',   emoji: '🦁', intro: '你好呀！我是威风的狮子，嗷呜！我是草原之王，我生活在大草原上，我最喜欢和家人一起晒太阳、打盹儿。' },
+  { habitat: 'grass',  name: '大象',   emoji: '🐘', intro: '你好呀！我是大象，我有长长的鼻子，可以卷起食物，还能喷水洗澡。我生活在大草原上，我最喜欢吃嫩树叶和香蕉啦！' },
+  { habitat: 'grass',  name: '长颈鹿', emoji: '🦒', intro: '你好呀！我是长颈鹿，我的脖子长长的，是世界上最高的动物。我生活在大草原上，我最喜欢吃高高的树上的叶子。' },
+  { habitat: 'grass',  name: '斑马',   emoji: '🦓', intro: '你好呀！我是斑马，我穿着黑白条纹的衣服，可漂亮啦。我生活在大草原上，我最喜欢和伙伴们一起奔跑、吃青草。' },
+  { habitat: 'forest', name: '大熊猫', emoji: '🐼', intro: '你好呀！我是大熊猫，我是中国的国宝，圆滚滚的，黑白两色。我生活在竹林里，我最喜欢抱着竹子，吃个不停。' },
+  { habitat: 'forest', name: '小猴子', emoji: '🐵', intro: '你好呀！我是小猴子，吱吱吱！我会爬树，还会荡秋千。我生活在大森林里，我最喜欢吃甜甜的桃子和香蕉。' },
+  { habitat: 'forest', name: '老虎',   emoji: '🐯', intro: '你好呀！我是老虎，嗷呜！我的头上有个王字，是森林之王。我生活在大森林里，我喜欢游泳，还喜欢到处巡逻。' },
+  { habitat: 'forest', name: '小兔子', emoji: '🐰', intro: '你好呀！我是小兔子，我有长长的耳朵，走路蹦蹦跳跳。我生活在森林的草地上，我最喜欢吃胡萝卜和青菜。' },
+  { habitat: 'farm',   name: '小狗',   emoji: '🐶', intro: '你好呀！我是小狗，汪汪汪！我是人类最好的朋友。我生活在农场的院子里，我喜欢帮主人看家，还喜欢玩飞盘。' },
+  { habitat: 'farm',   name: '小猫',   emoji: '🐱', intro: '你好呀！我是小猫，喵喵喵！我走路轻轻的，晚上也看得见东西。我生活在温暖的家里，我最喜欢晒太阳和玩毛线球。' },
+  { habitat: 'farm',   name: '小鸡',   emoji: '🐤', intro: '你好呀！我是小鸡，叽叽叽！我毛茸茸的，黄黄的。我生活在农场的鸡舍里，我最喜欢跟着鸡妈妈在草地上找小虫子吃。' },
+  { habitat: 'farm',   name: '奶牛',   emoji: '🐮', intro: '你好呀！我是奶牛，哞哞！我能挤出香香的牛奶，给小朋友们喝。我生活在农场的牧场里，我最喜欢慢慢地吃青草。' },
+  { habitat: 'ocean',  name: '海豚',   emoji: '🐬', intro: '你好呀！我是海豚，我特别聪明，还会跳出水面翻跟头。我生活在大海里，我最喜欢和伙伴们一起游泳、做游戏。' },
+  { habitat: 'ocean',  name: '鲸鱼',   emoji: '🐳', intro: '你好呀！我是鲸鱼，我是海洋里最大的动物，会喷出高高的水柱。我生活在深深的大海里，我最喜欢唱歌给朋友们听。' },
+  { habitat: 'ocean',  name: '小螃蟹', emoji: '🦀', intro: '你好呀！我是小螃蟹，我有两只大钳子，走起路来横着走。我生活在海边的沙滩上，我最喜欢吹泡泡和挖沙子。' },
+  { habitat: 'ocean',  name: '章鱼',   emoji: '🐙', intro: '你好呀！我是章鱼，我有八条腕足，还会变颜色躲猫猫。我生活在大海的礁石里，我最喜欢用长长的腕足抱住东西。' },
+];
+
+let currentHabitat = 'grass';
+let seekTarget = null;
+let seekRecorded = false;
+
+function animalsOf(habitatId) {
+  return ANIMALS.filter(a => a.habitat === habitatId);
+}
+
+function renderHabitatTabs() {
+  const box = $('#habitat-tabs');
+  box.innerHTML = '';
+  HABITATS.forEach(h => {
+    const btn = document.createElement('button');
+    btn.className = 'habitat-tab' + (h.id === currentHabitat ? ' active' : '');
+    btn.textContent = h.emoji + ' ' + h.name;
+    btn.addEventListener('click', () => {
+      if (currentHabitat === h.id) return;
+      currentHabitat = h.id;
+      clearAutoNext();
+      endSeek();
+      renderHabitatTabs();
+      renderAnimalStage();
+      Sfx.pop();
+      speak('我们来到了' + h.name + '！看看谁住在这里呀？点点它们，打个招呼吧！');
+    });
+    box.appendChild(btn);
+  });
+}
+
+function renderAnimalStage() {
+  const stage = $('#animal-stage');
+  const habitat = HABITATS.find(h => h.id === currentHabitat);
+  stage.className = 'animal-stage h-' + currentHabitat;
+  stage.innerHTML = '';
+  /* 重播入场渐入，让切换栖息地有过渡感 */
+  stage.style.animation = 'none';
+  void stage.offsetWidth;
+  stage.style.animation = '';
+  /* 场景装饰 */
+  const decorPos = [
+    { left: '4%',  top: '4%' },
+    { right: '5%', top: '6%' },
+    { left: '44%', top: '2%' },
+  ];
+  habitat.decors.forEach((d, i) => {
+    const s = document.createElement('span');
+    s.className = 'stage-decor';
+    s.textContent = d;
+    Object.assign(s.style, decorPos[i] || {});
+    stage.appendChild(s);
+  });
+  /* 动物按钮 */
+  animalsOf(currentHabitat).forEach((a, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'animal-btn';
+    btn.style.marginTop = ((i % 3) * 16) + 'px';
+    const emoji = document.createElement('span');
+    emoji.className = 'animal-emoji';
+    emoji.textContent = a.emoji;
+    emoji.style.setProperty('--bob-delay', (i * 0.35) + 's');
+    /* pop 播完移除 bounce，恢复 bob 漂浮 */
+    emoji.addEventListener('animationend', (e) => {
+      if (e.animationName === 'pop') btn.classList.remove('bounce');
+    });
+    const name = document.createElement('span');
+    name.className = 'animal-name';
+    name.textContent = a.name;
+    btn.setAttribute('aria-label', a.name);
+    btn.appendChild(emoji);
+    btn.appendChild(name);
+    btn.addEventListener('click', () => onAnimalClick(a, btn));
+    stage.appendChild(btn);
+  });
+}
+
+function onAnimalClick(animal, btn) {
+  Sfx.pop();
+  btn.classList.remove('wiggle'); /* 点击直接终结本轮招手，避免 pop 后招手复活重播 */
+  btn.classList.remove('bounce');
+  void btn.offsetWidth;
+  btn.classList.add('bounce');
+  /* 兜底：animationend 在隐藏页签中不触发，用定时器双保险恢复 bob */
+  clearTimeout(btn.bounceTimer);
+  btn.bounceTimer = setTimeout(() => btn.classList.remove('bounce'), 700);
+  if (seekTarget) {
+    const ok = animal.name === seekTarget.name;
+    if (!seekRecorded) { Progress.record('animal', ok); seekRecorded = true; }
+    if (ok) {
+      const found = seekTarget;
+      endSeek();
+      celebrate(btn);
+      /* 统一语音出口（夸奖轮换 + 连击彩蛋），讲完自动出下一题，拉平全站节奏 */
+      const dur = speakSuccess('你找到' + found.name + '啦！' + found.intro);
+      autoNextTimer = setTimeout(startSeek, dur + 2200);
+    } else {
+      btn.classList.remove('shake');
+      void btn.offsetWidth;
+      btn.classList.add('shake');
+      Sfx.buzz();
+      speak('这是' + animal.name + '哦。再找一找，' + seekTarget.name + '在哪里呢？');
+    }
+  } else {
+    clearAutoNext(); /* 孩子改去自由听介绍，停止待发的自动追问 */
+    speak(animal.intro);
+  }
+}
+
+let lastSeekName = null;
+
+function startSeek() {
+  clearAutoNext(); /* 手动开局时取消待发的自动接续，防双触发 */
+  const list = animalsOf(currentHabitat);
+  let next;
+  do { next = pick(list); } while (lastSeekName && next.name === lastSeekName && list.length > 1);
+  seekTarget = next;
+  lastSeekName = next.name;
+  seekRecorded = false;
+  $('#seek-text').textContent = '请找一找：' + seekTarget.name;
+  $('#seek-bar').classList.remove('hidden');
+  $('#btn-seek').textContent = '🔁 换一只';
+  Sfx.ding();
+  speak('小朋友，请找一找，' + seekTarget.name + '在哪里呀？找到就点一点它！');
+}
+
+function endSeek() {
+  seekTarget = null;
+  $('#seek-bar').classList.add('hidden');
+  $('#btn-seek').textContent = '🔍 找一找';
+}
+
+function enterAnimals() {
+  showScreen('animals');
+  endSeek();
+  renderHabitatTabs();
+  renderAnimalStage();
+  speak('欢迎来到动物乐园！点一点小动物，听它们跟你打招呼吧！还可以点下面的按钮，玩找一找哦！');
+}
+
+/* 动物偶尔"招手"摇摆：只在动物乐园可见时生效，让画面有生命感 */
+function scheduleWiggle() {
+  setTimeout(() => {
+    const active = document.querySelector('.screen.active');
+    if (active && active.id === 'screen-animals' && document.visibilityState === 'visible') {
+      const btns = document.querySelectorAll('.animal-btn');
+      if (btns.length) {
+        const btn = btns[randInt(0, btns.length - 1)];
+        if (!btn.classList.contains('bounce')) {
+          btn.classList.add('wiggle');
+          setTimeout(() => btn.classList.remove('wiggle'), 900);
+        }
+      }
+    }
+    scheduleWiggle();
+  }, randInt(3500, 7000));
+}
+
+/* ================= 场景二：数一数 ================= */
+const COUNT_THEMES = [
+  { id: 'star',  itemEmoji: '⭐', itemName: '星星', unit: '颗', prompt: '数一数，天上有几颗星星呀？' },
+  { id: 'apple', itemEmoji: '🍎', itemName: '苹果', unit: '个', prompt: '数一数，树上有几个苹果呀？' },
+  { id: 'fish',  itemEmoji: '🐟', itemName: '小鱼', unit: '条', prompt: '数一数，水里有几条小鱼呀？' },
+];
+let countTheme = null;
+let countTotal = 0;
+let countTapped = 0;
+let countLocked = false;
+let countAnswered = false;
+let countPrompt = '';
+let countUnlockTimer = null;
+/* 数完→出选项的过渡定时器：独立于 autoNextTimer，避免被音色面板的 clearAutoNext 误杀导致回合死锁 */
+let countChoicesTimer = null;
+function clearCountChoicesTimer() {
+  if (countChoicesTimer) { clearTimeout(countChoicesTimer); countChoicesTimer = null; }
+}
+
+let mathMode = 'count';
+let mathRecorded = false;
+let subCrossed = false;
+/* 划掉动画定时器：统一清理，防跨回合/跨场景泄漏 */
+let crossTimer = null;
+function clearCrossTimer() {
+  if (crossTimer) { clearTimeout(crossTimer); crossTimer = null; }
+}
+
+/* 划掉动作与语音叙述同拍：按动作词在题干中的位置估算触发时刻（约 250ms/字，与气泡时长同源），
+   到点后逐个划掉并配轻快短音（不复用答错音 buzz，避免语义混淆）；无语音设备回退 900ms。
+   须在 countPrompt 赋值之后调用 */
+function scheduleCross(items, actionWord) {
+  const idx = countPrompt.indexOf(actionWord);
+  const delay = (Speech.enabled && idx > 0) ? Math.min(400 + idx * 250, 5000) * 0.92 / Speech.rate : 900;
+  const step = (i) => {
+    if (countAnswered || i >= items.length) {
+      /* 已作答则立即补齐剩余划掉，保证画面与讲解一致 */
+      items.slice(i).forEach(s => s.classList.add('sub-item', 'taken'));
+      subCrossed = true;
+      return;
+    }
+    items[i].classList.add('sub-item', 'taken');
+    Sfx.tone(520 - i * 30, 0.08, 'triangle', 0, 0.1);
+    crossTimer = setTimeout(() => step(i + 1), 160);
+  };
+  crossTimer = setTimeout(() => step(0), delay);
+}
+/* 每回合由渲染函数设置的讲解与提示文案（count 模式除外） */
+let mathSuccessText = '';
+let mathWrongHint = '';
+
+function startCountRound() {
+  clearAutoNext();
+  clearCountChoicesTimer();
+  clearCrossTimer();
+  countTapped = 0;
+  countAnswered = false;
+  mathRecorded = false;
+  /* 开局短暂锁定，防止上一屏的连点误触新目标 */
+  if (countUnlockTimer) clearTimeout(countUnlockTimer);
+  countLocked = true;
+  countUnlockTimer = setTimeout(() => { countLocked = false; }, 400);
+
+  $('#count-choices').classList.add('hidden');
+  $('#count-choices').innerHTML = '';
+  $('#btn-count-next').classList.add('hidden');
+
+  /* 按等级解锁玩法（一年级口算顺序）：
+     L1 数数 → L2 +比多少 → L3 +加法≤10 → L4 +减法≤10
+     → L5 +不进位加减(20 以内)与应用题 → L6 +进位加法(凑十)
+     → L7 +退位减法(破十) → L8 应用题混合 20 以内 */
+  const lv = Progress.get('math').lv;
+  const MODE_POOLS = {
+    1: ['count'],
+    2: ['count', 'compare'],
+    3: ['count', 'compare', 'add'],
+    4: ['count', 'compare', 'add', 'sub'],
+    5: ['compare', 'add', 'sub', 'plain20', 'story'],
+    6: ['sub', 'plain20', 'carry', 'story'],
+    7: ['plain20', 'carry', 'borrow', 'story'],
+    8: ['carry', 'borrow', 'plain20', 'story'],
+  };
+  const modes = MODE_POOLS[lv] || MODE_POOLS[3];
+  let nextMode;
+  do { nextMode = pick(modes); } while (modes.length > 1 && nextMode === mathMode);
+  mathMode = nextMode;
+
+  if (mathMode === 'compare') renderCompareRound(lv);
+  else if (mathMode === 'add') renderAddRound();
+  else if (mathMode === 'sub') renderSubRound();
+  else if (mathMode === 'plain20') renderPlain20Round();
+  else if (mathMode === 'carry') renderCarryRound();
+  else if (mathMode === 'borrow') renderBorrowRound();
+  else if (mathMode === 'story') renderStoryRound(lv);
+  else renderCountingRound(lv);
+}
+
+function renderCountingRound(lv) {
+  let next;
+  do { next = pick(COUNT_THEMES); } while (countTheme && next.id === countTheme.id);
+  countTheme = next;
+  const ranges = { 1: [3, 7], 2: [4, 9], 3: [5, 10] };
+  const range = ranges[lv] || [5, 10]; /* L4/L5 沿用最高档 */
+  countTotal = randInt(range[0], range[1]);
+  $('#count-display').textContent = countTheme.prompt;
+
+  const stage = $('#count-stage');
+  stage.className = 'count-stage theme-' + countTheme.id;
+  stage.innerHTML = '';
+
+  /* 4 列 × 3 行网格中随机取格子，加抖动，避免重叠 */
+  const cells = shuffle(Array.from({ length: 12 }, (_, i) => i)).slice(0, countTotal);
+  cells.forEach(c => {
+    const col = c % 4;
+    const row = Math.floor(c / 4);
+    const btn = document.createElement('button');
+    btn.className = 'count-item';
+    btn.textContent = countTheme.itemEmoji;
+    btn.style.left = (col * 22 + 12 + Math.random() * 7) + '%';
+    btn.style.top = (row * 26 + 16 + Math.random() * 8) + '%';
+    btn.style.setProperty('--float-delay', (Math.random() * 1.6) + 's');
+    btn.addEventListener('click', () => onCountTap(btn));
+    stage.appendChild(btn);
+  });
+
+  countPrompt = countTheme.prompt + ' 点一点' + countTheme.itemName + '，数数看！';
+  speak(countPrompt);
+}
+
+/* 比多少：两边物品，点多（或少）的一边 */
+function renderCompareRound(lv) {
+  countTheme = pick(COUNT_THEMES);
+  const a = randInt(2, 6);
+  let b;
+  /* L3 及以上：范围到 9，且"多/少"随机问 */
+  do { b = randInt(2, lv >= 3 ? 9 : 6); } while (b === a);
+  const askMore = lv >= 3 ? Math.random() < 0.5 : true;
+  const word = askMore ? '多' : '少';
+
+  const stage = $('#count-stage');
+  stage.className = 'count-stage compare-mode theme-' + countTheme.id;
+  stage.innerHTML = '';
+  const q = '哪边的' + countTheme.itemName + word + '呀？';
+  $('#count-display').textContent = q;
+
+  [a, b].forEach((n, idx) => {
+    const side = document.createElement('button');
+    side.className = 'compare-side';
+    side.style.setProperty('--in-delay', (idx * 0.12) + 's');
+    side.setAttribute('aria-label', numWord(n) + countTheme.unit + countTheme.itemName);
+    for (let i = 0; i < n; i++) {
+      const s = document.createElement('span');
+      s.textContent = countTheme.itemEmoji;
+      side.appendChild(s);
+    }
+    side.addEventListener('click', () => onCompareChoice(side, n, a, b, askMore));
+    stage.appendChild(side);
+  });
+
+  countPrompt = q + ' 点一点' + word + '的那一边！';
+  speak(countPrompt);
+}
+
+function onCompareChoice(side, n, a, b, askMore) {
+  if (countAnswered || countLocked) return;
+  const target = askMore ? Math.max(a, b) : Math.min(a, b);
+  const ok = n === target;
+  if (!mathRecorded) { Progress.record('math', ok); mathRecorded = true; }
+  if (ok) {
+    countAnswered = true;
+    side.classList.add('right');
+    celebrate(side);
+    /* 把两边数量摆出来对比，是"比多少"最核心的教学时刻 */
+    const other = n === a ? b : a;
+    const dur = speakSuccess('这边有' + numWord(n) + countTheme.unit + '，那边有' + numWord(other) + countTheme.unit + '，' + numCN20(n) + '比' + numCN20(other) + (askMore ? '多' : '少') + '！');
+    $('#btn-count-next').classList.remove('hidden');
+    autoNextTimer = setTimeout(startCountRound, dur + 2200);
+  } else {
+    side.classList.remove('shake');
+    void side.offsetWidth;
+    side.classList.add('shake');
+    Sfx.buzz();
+    speak(soothe() + '再数一数，哪边的' + countTheme.itemName + (askMore ? '多' : '少') + '呀？');
+  }
+}
+
+/* 运算符/占位标签 */
+function makeOp(t) {
+  const op = document.createElement('span');
+  op.className = 'add-op';
+  op.textContent = t;
+  return op;
+}
+
+/* 可点数实物（报数用 numCN20，受 subCrossed 门控） */
+function makeCountable(el, counter) {
+  el.addEventListener('click', () => {
+    if (!subCrossed || el.classList.contains('taken') || el.classList.contains('counted')) return;
+    el.classList.add('counted');
+    counter.n++;
+    Sfx.pop();
+    speak(numCN20(counter.n), { noBubble: true });
+  });
+}
+
+/* 小加法：实物点数 + 数字选择（具象→抽象） */
+function renderAddRound() {
+  countTheme = pick(COUNT_THEMES);
+  const a = randInt(1, 5);
+  const b = randInt(1, Math.min(5, 10 - a));
+  countTotal = a + b;
+  subCrossed = true; /* 无划掉环节，点数即刻可用 */
+
+  const stage = $('#count-stage');
+  stage.className = 'count-stage add-mode theme-' + countTheme.id;
+  stage.innerHTML = '';
+  $('#count-display').textContent = a + ' + ' + b + ' = ?';
+
+  const row = document.createElement('div');
+  row.className = 'add-row';
+  const counter = { n: 0 };
+  const appendItems = (n) => {
+    for (let i = 0; i < n; i++) {
+      const s = document.createElement('button');
+      s.className = 'add-item';
+      s.textContent = countTheme.itemEmoji;
+      makeCountable(s, counter);
+      row.appendChild(s);
+    }
+  };
+  appendItems(a);
+  row.appendChild(makeOp('+'));
+  appendItems(b);
+  row.appendChild(makeOp('='));
+  row.appendChild(makeOp('❓'));
+  stage.appendChild(row);
+
+  /* 数字选项直接给出，孩子可先点物品数一数 */
+  renderNumChoices(countTotal, 1, 10);
+
+  mathSuccessText = NUM_CN[a] + '加' + NUM_CN[b] + '等于' + NUM_CN[countTotal] + '！一共' + numWord(countTotal) + countTheme.unit + countTheme.itemName + '！';
+  mathWrongHint = '点一点' + countTheme.itemName + '，一个一个数一数！';
+  countPrompt = numWord(a) + countTheme.unit + countTheme.itemName + '，加' + numWord(b) + countTheme.unit + countTheme.itemName + '，一共有几' + countTheme.unit + '呀？可以点一点，数一数！';
+  speak(countPrompt);
+}
+
+/* 数字选项面板（加/减/进位共用） */
+function renderNumChoices(answer, min, max) {
+  const panel = $('#count-choices');
+  panel.innerHTML = '';
+  panel.classList.remove('hidden');
+  const options = new Set([answer]);
+  while (options.size < 3) {
+    options.add(randInt(Math.max(min, answer - 2), Math.min(max, answer + 2)));
+  }
+  shuffle(Array.from(options)).forEach((v, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'num-btn';
+    btn.style.setProperty('--in-delay', (i * 0.08) + 's');
+    btn.textContent = v;
+    btn.addEventListener('click', () => onCountChoice(v, btn));
+    panel.appendChild(btn);
+  });
+}
+
+/* 减法：先看到全部，再"拿走"几个（划掉），数剩下的 */
+function renderSubRound() {
+  countTheme = pick(COUNT_THEMES);
+  const a = randInt(3, 10);
+  const b = randInt(1, a - 1);
+  countTotal = a - b;
+  subCrossed = false;
+
+  const stage = $('#count-stage');
+  stage.className = 'count-stage add-mode theme-' + countTheme.id;
+  stage.innerHTML = '';
+  $('#count-display').textContent = a + ' - ' + b + ' = ?';
+
+  const row = document.createElement('div');
+  row.className = 'add-row';
+  const counter = { n: 0 };
+  const items = [];
+  for (let i = 0; i < a; i++) {
+    const s = document.createElement('button');
+    s.className = 'add-item sub-item';
+    s.textContent = countTheme.itemEmoji;
+    makeCountable(s, counter);
+    row.appendChild(s);
+    items.push(s);
+  }
+  stage.appendChild(row);
+
+  renderNumChoices(countTotal, 1, 10);
+  mathSuccessText = NUM_CN[a] + '减' + NUM_CN[b] + '等于' + NUM_CN[countTotal] + '！还剩' + numWord(countTotal) + countTheme.unit + countTheme.itemName + '！';
+  mathWrongHint = '拿走的不算，数一数剩下的' + countTheme.itemName + '！';
+  countPrompt = numWord(a) + countTheme.unit + countTheme.itemName + '，拿走' + numWord(b) + countTheme.unit + '，还剩几' + countTheme.unit + '呀？点一点，数数剩下的！';
+  /* 语音念到"拿走"时才划掉，教学节拍一致 */
+  scheduleCross(items.slice(a - b), '拿走');
+  speak(countPrompt);
+}
+
+/* 构建十格阵：filled 个实物格，其余空格；返回 {el, cells} 供后续标记 */
+function buildTenFrame(filled, emoji, counter) {
+  const frame = document.createElement('div');
+  frame.className = 'ten-frame';
+  const cells = [];
+  for (let i = 0; i < 10; i++) {
+    if (i < filled) {
+      const cell = document.createElement('button');
+      cell.className = 'frame-cell filled add-item';
+      cell.style.fontSize = '28px';
+      cell.textContent = emoji;
+      makeCountable(cell, counter);
+      frame.appendChild(cell);
+      cells.push(cell);
+    } else {
+      const cell = document.createElement('span');
+      cell.className = 'frame-cell';
+      frame.appendChild(cell);
+    }
+  }
+  return { el: frame, cells };
+}
+
+/* 一组散放实物；返回元素数组 */
+function buildLooseGroup(container, n, emoji, counter, extraClass) {
+  const made = [];
+  for (let i = 0; i < n; i++) {
+    const s = document.createElement('button');
+    s.className = 'add-item' + (extraClass ? ' ' + extraClass : '');
+    s.textContent = emoji;
+    makeCountable(s, counter);
+    container.appendChild(s);
+    made.push(s);
+  }
+  return made;
+}
+
+/* 进位加法：十格阵 + 凑十法（一年级标准教法） */
+function renderCarryRound() {
+  countTheme = pick(COUNT_THEMES);
+  const a = randInt(6, 9);
+  const b = randInt(11 - a, 9);
+  countTotal = a + b;
+  const comp = 10 - a;  /* 凑十要借的个数 */
+  const rest = b - comp;
+  subCrossed = true;
+
+  const stage = $('#count-stage');
+  stage.className = 'count-stage add-mode theme-' + countTheme.id;
+  stage.innerHTML = '';
+  $('#count-display').textContent = a + ' + ' + b + ' = ?';
+
+  const counter = { n: 0 };
+  const row = document.createElement('div');
+  row.className = 'add-row';
+  /* 左：十格阵放 a 个；右：b 个，前 comp 个高亮"借去凑十" */
+  row.appendChild(buildTenFrame(a, countTheme.itemEmoji, counter).el);
+  row.appendChild(makeOp('+'));
+  const group = document.createElement('div');
+  group.className = 'carry-group';
+  buildLooseGroup(group, comp, countTheme.itemEmoji, counter, 'carry-borrow');
+  buildLooseGroup(group, b - comp, countTheme.itemEmoji, counter);
+  row.appendChild(group);
+  stage.appendChild(row);
+
+  renderNumChoices(countTotal, 10, 18);
+  mathSuccessText = '先凑十：' + NUM_CN[a] + '加' + NUM_CN[comp] + '等于十，十再加' + NUM_CN[rest] + '，等于' + numCN20(countTotal) + '！';
+  mathWrongHint = '先凑成十，十再加剩下的，是多少呀？';
+  countPrompt = NUM_CN[a] + '加' + NUM_CN[b] + '等于几呀？先把亮亮的' + numWord(comp) + countTheme.unit + '放进格子里凑成十，再想一想！';
+  speak(countPrompt);
+}
+
+/* 20 以内不进位加减：满十格阵 + 个位散放，"十不动、算个位"（位值教学） */
+function renderPlain20Round() {
+  countTheme = pick(COUNT_THEMES);
+  const isAdd = Math.random() < 0.5;
+
+  const stage = $('#count-stage');
+  stage.className = 'count-stage add-mode theme-' + countTheme.id;
+  stage.innerHTML = '';
+
+  const counter = { n: 0 };
+  const row = document.createElement('div');
+  row.className = 'add-row';
+  row.appendChild(buildTenFrame(10, countTheme.itemEmoji, counter).el);
+  const loose = document.createElement('div');
+  loose.className = 'carry-group';
+
+  if (isAdd) {
+    subCrossed = true;
+    const ones = randInt(0, 8);
+    const a = 10 + ones;
+    const b = randInt(1, 9 - ones);
+    countTotal = a + b;
+    $('#count-display').textContent = a + ' + ' + b + ' = ?';
+    buildLooseGroup(loose, ones, countTheme.itemEmoji, counter);
+    row.appendChild(loose);
+    row.appendChild(makeOp('+'));
+    const groupB = document.createElement('div');
+    groupB.className = 'carry-group';
+    buildLooseGroup(groupB, b, countTheme.itemEmoji, counter);
+    row.appendChild(groupB);
+    mathSuccessText = ones === 0
+      ? ('十加' + NUM_CN[b] + '等于' + numCN20(countTotal) + '！')
+      : ('个位' + NUM_CN[ones] + '加' + NUM_CN[b] + '等于' + NUM_CN[ones + b] + '，十不动，就是' + numCN20(countTotal) + '！');
+    mathWrongHint = '格子里的十先放着不动，先算旁边的，算完再和十合起来！';
+    countPrompt = numCN20(a) + '加' + NUM_CN[b] + '等于几呀？格子里的十先不动，先算旁边的，再想一想！';
+  } else {
+    subCrossed = false;
+    const ones = randInt(1, 9);
+    const a = 10 + ones;
+    const b = randInt(1, ones);
+    countTotal = a - b;
+    $('#count-display').textContent = a + ' - ' + b + ' = ?';
+    const looseItems = buildLooseGroup(loose, ones, countTheme.itemEmoji, counter, 'sub-item');
+    row.appendChild(loose);
+    mathSuccessText = '个位' + NUM_CN[ones] + '减' + NUM_CN[b] + '等于' + NUM_CN[ones - b] + '，十不动，还剩' + numCN20(countTotal) + '！';
+    mathWrongHint = '格子里的十先放着不动，旁边的减完再和十合起来！';
+    countPrompt = numCN20(a) + '减' + NUM_CN[b] + '等于几呀？旁边的够减，格子里的十不用动，看一看！';
+    /* 个位够减：语音念到"旁边"时才从散放的个位里划掉 */
+    scheduleCross(looseItems.slice(ones - b), '旁边');
+  }
+  stage.appendChild(row);
+  renderNumChoices(countTotal, 10, 19);
+  speak(countPrompt);
+}
+
+/* 退位减法：破十法——个位不够减，打开十来减（一年级标准教法） */
+function renderBorrowRound() {
+  countTheme = pick(COUNT_THEMES);
+  const ones = randInt(1, 8);
+  const a = 10 + ones;
+  const b = randInt(ones + 1, 9); /* b > 个位 → 必须退位 */
+  countTotal = a - b;
+  const rest10 = 10 - b;
+  subCrossed = false;
+
+  const stage = $('#count-stage');
+  stage.className = 'count-stage add-mode theme-' + countTheme.id;
+  stage.innerHTML = '';
+  $('#count-display').textContent = a + ' - ' + b + ' = ?';
+
+  const counter = { n: 0 };
+  const row = document.createElement('div');
+  row.className = 'add-row';
+  const frame = buildTenFrame(10, countTheme.itemEmoji, counter);
+  row.appendChild(frame.el);
+  const loose = document.createElement('div');
+  loose.className = 'carry-group';
+  buildLooseGroup(loose, ones, countTheme.itemEmoji, counter);
+  row.appendChild(loose);
+  stage.appendChild(row);
+
+  renderNumChoices(countTotal, 1, 10);
+  mathSuccessText = '先破十：十减' + NUM_CN[b] + '等于' + NUM_CN[rest10] + '，' + NUM_CN[rest10] + '再加' + NUM_CN[ones] + '，等于' + NUM_CN[countTotal] + '！';
+  mathWrongHint = '先用十去减，剩下的再加旁边的' + numWord(ones) + countTheme.unit + '！';
+  countPrompt = numCN20(a) + '减' + NUM_CN[b] + '等于几呀？个位不够减，我们打开十来减，看一看！';
+  /* 破十：语音念到"打开十"时才从十格阵里划掉 */
+  scheduleCross(frame.cells.slice(10 - b), '打开十');
+  speak(countPrompt);
+}
+
+/* 应用题：角色 + 物品的语音故事题（听算与数学语言理解） */
+const STORY_CHARS = [
+  { name: '小明', emoji: '👦' },
+  { name: '小红', emoji: '👧' },
+  { name: '小兔子', emoji: '🐰' },
+  { name: '小熊', emoji: '🐻' },
+  { name: '小猴子', emoji: '🐵' },
+];
+const STORY_OBJS = [
+  { name: '糖果', emoji: '🍬', unit: '颗', gain: '妈妈又给了', lose: '吃掉了' },
+  { name: '气球', emoji: '🎈', unit: '个', gain: '又买了', lose: '飞走了' },
+  { name: '苹果', emoji: '🍎', unit: '个', gain: '又摘了', lose: '吃掉了' },
+  { name: '饼干', emoji: '🍪', unit: '块', gain: '又拿了', lose: '吃掉了' },
+  { name: '小花', emoji: '🌸', unit: '朵', gain: '又采了', lose: '送给了好朋友' },
+  { name: '贴纸', emoji: '⭐', unit: '张', gain: '又得到了', lose: '送给了好朋友' },
+];
+
+function renderStoryRound(lv) {
+  countTheme = pick(COUNT_THEMES); /* 仅用于舞台底色 */
+  const ch = pick(STORY_CHARS);
+  const obj = pick(STORY_OBJS);
+  const isAdd = Math.random() < 0.5;
+  const hard = lv >= 8; /* L8 用 20 以内（可进/退位），其余 ≤10 */
+  let a, b;
+  if (isAdd) {
+    if (hard) { a = randInt(5, 12); b = randInt(2, Math.min(8, 20 - a)); }
+    else { a = randInt(2, 6); b = randInt(1, Math.min(4, 10 - a)); }
+    countTotal = a + b;
+  } else {
+    if (hard) { a = randInt(11, 15); b = randInt(2, 9); }
+    else { a = randInt(3, 9); b = randInt(1, a - 1); }
+    countTotal = a - b;
+  }
+
+  const stage = $('#count-stage');
+  stage.className = 'count-stage add-mode theme-' + countTheme.id;
+  stage.innerHTML = '';
+  $('#count-display').textContent = a + (isAdd ? ' + ' : ' - ') + b + ' = ?';
+
+  const figure = document.createElement('div');
+  figure.className = 'judge-figure';
+  figure.textContent = ch.emoji;
+  stage.appendChild(figure);
+
+  const counter = { n: 0 };
+  const row = document.createElement('div');
+  row.className = 'add-row';
+  let storySubItems = null;
+  if (isAdd) {
+    subCrossed = true;
+    buildLooseGroup(row, a, obj.emoji, counter);
+    row.appendChild(makeOp('+'));
+    buildLooseGroup(row, b, obj.emoji, counter);
+  } else {
+    subCrossed = false;
+    storySubItems = buildLooseGroup(row, a, obj.emoji, counter, 'sub-item');
+  }
+  stage.appendChild(row);
+
+  const story = isAdd
+    ? (ch.name + '有' + numWord(a) + obj.unit + obj.name + '，' + obj.gain + numWord(b) + obj.unit + '，现在一共有几' + obj.unit + '？')
+    : (ch.name + '有' + numWord(a) + obj.unit + obj.name + '，' + obj.lose + numWord(b) + obj.unit + '，还剩几' + obj.unit + '？');
+
+  renderNumChoices(countTotal, 1, hard ? 20 : 10);
+  mathSuccessText = isAdd
+    ? (ch.name + '现在有' + numWord(countTotal) + obj.unit + obj.name + '！' + numCN20(a) + '加' + numCN20(b) + '等于' + numCN20(countTotal) + '！')
+    : ('还剩' + numWord(countTotal) + obj.unit + obj.name + '！' + numCN20(a) + '减' + numCN20(b) + '等于' + numCN20(countTotal) + '！');
+  mathWrongHint = (isAdd ? '变多了要用加法' : '变少了要用减法') + '！可以点一点，数一数！';
+  countPrompt = '听好啦！' + story;
+  /* 故事讲到"吃掉了/飞走了"时才划掉 */
+  if (!isAdd) scheduleCross(storySubItems.slice(a - b), obj.lose);
+  speak(countPrompt);
+}
+
+function onCountTap(btn) {
+  if (countLocked || btn.classList.contains('counted')) return;
+  btn.classList.add('counted');
+  countTapped++;
+  const badge = document.createElement('span');
+  badge.className = 'count-badge';
+  badge.textContent = countTapped;
+  btn.appendChild(badge);
+  Sfx.pop();
+  speak(NUM_CN[countTapped], { noBubble: true });
+  $('#count-display').textContent = '数到 ' + countTapped + ' 啦！';
+  if (countTapped === countTotal) {
+    countLocked = true;
+    /* 数完集体欢呼跳 */
+    document.querySelectorAll('.count-item').forEach((el, i) => {
+      setTimeout(() => el.classList.add('cheer'), i * 90);
+    });
+    /* 独立定时器：由 showScreen/startCountRound 清理，音色面板不干预 */
+    countChoicesTimer = setTimeout(showCountChoices, 1000);
+  }
+}
+
+function showCountChoices() {
+  /* 防御：仅在数一数场景处于数完待答状态时展示 */
+  if (!countLocked || countAnswered) return;
+  if (!document.getElementById('screen-counting').classList.contains('active')) return;
+  /* 音色/家长面板打开时顺延，关闭后再弹出选项，避免语音与试听打架 */
+  if (!$('#voice-panel').classList.contains('hidden') || !$('#parent-panel').classList.contains('hidden')) {
+    countChoicesTimer = setTimeout(showCountChoices, 600);
+    return;
+  }
+  const question = '一共有几' + countTheme.unit + countTheme.itemName + '呢？';
+  $('#count-display').textContent = question;
+  renderNumChoices(countTotal, 1, 10);
+  /* 选项已就位、场上无可误触目标：解锁，让 onCountChoice 统一用锁守卫 */
+  countLocked = false;
+  countPrompt = question + ' 选一选下面的数字！';
+  speak(countPrompt);
+}
+
+function onCountChoice(value, btn) {
+  /* 锁守卫：加法模式开局 400ms 防上一屏连点误触（数数模式在 showCountChoices 已解锁） */
+  if (countAnswered || countLocked) return;
+  if (!mathRecorded) { Progress.record('math', value === countTotal); mathRecorded = true; }
+  if (value === countTotal) {
+    countAnswered = true;
+    btn.classList.add('right');
+    celebrate(btn);
+    /* 等式揭晓：3 + 2 = ? → 3 + 2 = 5（听觉与视觉同步呈现完整等式） */
+    const cd = $('#count-display');
+    cd.textContent = cd.textContent.replace('?', String(countTotal));
+    /* 讲解文案由各模式的渲染函数在出题时写好 */
+    const successText = mathMode === 'count'
+      ? ('一共有' + numWord(countTotal) + countTheme.unit + countTheme.itemName + '！你数得真好！')
+      : mathSuccessText;
+    const dur = speakSuccess(successText);
+    $('#btn-count-next').classList.remove('hidden');
+    /* 按播报时长动态排布自动换题 */
+    autoNextTimer = setTimeout(startCountRound, dur + 2200);
+  } else {
+    btn.classList.add('wrong');
+    Sfx.buzz();
+    /* 提示语按模式分流（数数模式才有数字角标） */
+    speak(soothe() + (mathMode === 'count'
+      ? ('看看' + countTheme.itemName + '上的小数字，再数一数！')
+      : mathWrongHint));
+    setTimeout(() => btn.classList.remove('wrong'), 600);
+  }
+}
+
+function enterCounting() {
+  showScreen('counting');
+  sceneGreeting = '欢迎来到数学岛！';
+  startCountRound();
+}
+
+/* ================= 场景三：听指令 ================= */
+const COLOR_ITEMS = [
+  { name: '红色的苹果', emoji: '🍎', color: '红' },
+  { name: '红色的草莓', emoji: '🍓', color: '红' },
+  { name: '黄色的香蕉', emoji: '🍌', color: '黄' },
+  { name: '黄色的柠檬', emoji: '🍋', color: '黄' },
+  { name: '紫色的葡萄', emoji: '🍇', color: '紫' },
+  { name: '紫色的茄子', emoji: '🍆', color: '紫' },
+  { name: '橙色的橘子', emoji: '🍊', color: '橙' },
+  { name: '橙色的胡萝卜', emoji: '🥕', color: '橙' },
+  { name: '绿色的西兰花', emoji: '🥦', color: '绿' },
+  { name: '绿色的梨', emoji: '🍐', color: '绿' },
+  { name: '蓝色的蝴蝶', emoji: '🦋', color: '蓝' },
+  { name: '粉色的小花', emoji: '🌸', color: '粉' },
+];
+const SOUND_ANIMALS = [
+  { name: '小狗', emoji: '🐶', sound: '汪汪' },
+  { name: '小猫', emoji: '🐱', sound: '喵喵' },
+  { name: '奶牛', emoji: '🐮', sound: '哞哞' },
+  { name: '小羊', emoji: '🐑', sound: '咩咩' },
+  { name: '青蛙', emoji: '🐸', sound: '呱呱' },
+  { name: '鸭子', emoji: '🦆', sound: '嘎嘎' },
+  { name: '小猪', emoji: '🐷', sound: '哼哼' },
+  { name: '狮子', emoji: '🦁', sound: '嗷呜' },
+];
+const SIZE_ITEMS = [
+  { name: '西瓜', emoji: '🍉' },
+  { name: '皮球', emoji: '⚽' },
+  { name: '气球', emoji: '🎈' },
+  { name: '苹果', emoji: '🍎' },
+  { name: '蛋糕', emoji: '🎂' },
+];
+const JUDGE_QUESTIONS = [
+  { text: '小鱼在水里游泳', answer: true,  emoji: '🐟' },
+  { text: '小鸟会在天上飞', answer: true,  emoji: '🐦' },
+  { text: '小狗会喵喵叫',   answer: false, emoji: '🐶' },
+  { text: '太阳在晚上出来', answer: false, emoji: '🌞' },
+  { text: '小兔子喜欢吃胡萝卜', answer: true, emoji: '🐰' },
+  { text: '大象的鼻子短短的', answer: false, emoji: '🐘' },
+  { text: '西瓜是甜甜的',   answer: true,  emoji: '🍉' },
+  { text: '香蕉是黄色的',   answer: true,  emoji: '🍌' },
+  { text: '小猫会汪汪叫',   answer: false, emoji: '🐱' },
+  { text: '苹果长在树上',   answer: true,  emoji: '🍎' },
+  { text: '冰淇淋是热热的', answer: false, emoji: '🍦' },
+  { text: '斑马身上有条纹', answer: true,  emoji: '🦓' },
+  { text: '雪是凉凉的',     answer: true,  emoji: '❄️' },
+  { text: '汽车会在天上飞', answer: false, emoji: '🚗' },
+  { text: '香蕉是蓝色的',   answer: false, emoji: '🍌' },
+  { text: '小鸭子会游泳',   answer: true,  emoji: '🦆' },
+  { text: '天黑了要睡觉',   answer: true,  emoji: '🌙' },
+  { text: '石头是软软的',   answer: false, emoji: '🪨' },
+];
+
+let cmdLocked = false;
+let cmdPrompt = '';
+let lastCmdType = null;
+let lastJudgeText = '';
+let cmdUnlockTimer = null;
+let cmdRecorded = false;
+
+function setCmdText(text) { $('#cmd-text').textContent = text; }
+
+function cmdCorrect(el, successText) {
+  if (cmdLocked) return;
+  cmdLocked = true;
+  if (!cmdRecorded) { Progress.record('listen', true); cmdRecorded = true; }
+  el.classList.add('right');
+  celebrate(el);
+  const dur = speakSuccess(successText);
+  $('#btn-cmd-next').classList.remove('hidden');
+  /* 按播报时长动态排布自动换题 */
+  autoNextTimer = setTimeout(startCommandRound, dur + 2200);
+}
+
+function cmdWrong(el, msg) {
+  if (cmdLocked) return;
+  if (!cmdRecorded) { Progress.record('listen', false); cmdRecorded = true; }
+  el.classList.remove('shake');
+  void el.offsetWidth;
+  el.classList.add('shake');
+  Sfx.buzz();
+  speak(msg);
+}
+
+function renderCmdItems(items) {
+  const stage = $('#cmd-stage');
+  stage.innerHTML = '';
+  items.forEach((it, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'cmd-item';
+    btn.style.setProperty('--in-delay', (i * 0.07) + 's');
+    const emoji = document.createElement('span');
+    emoji.className = 'cmd-emoji' + (it.sizeClass ? ' ' + it.sizeClass : '');
+    emoji.textContent = it.emoji;
+    btn.appendChild(emoji);
+    if (it.label) {
+      const label = document.createElement('span');
+      label.className = 'cmd-label';
+      label.textContent = it.label;
+      btn.appendChild(label);
+    }
+    btn.addEventListener('click', () => it.onClick(btn));
+    stage.appendChild(btn);
+  });
+}
+
+/* 抽 4 个颜色互不相同的物品 */
+function distinctColorSample(n) {
+  const result = [];
+  const usedColors = new Set();
+  for (const item of shuffle(COLOR_ITEMS)) {
+    if (usedColors.has(item.color)) continue;
+    usedColors.add(item.color);
+    result.push(item);
+    if (result.length === n) break;
+  }
+  return result;
+}
+
+function roundColor() {
+  const items = distinctColorSample(4);
+  const target = pick(items);
+  cmdPrompt = '请点一点，' + target.name + '！';
+  setCmdText('请点一点：' + target.name);
+  renderCmdItems(items.map(it => ({
+    emoji: it.emoji,
+    label: it.name,
+    onClick: (btn) => {
+      Sfx.pop();
+      if (it === target) cmdCorrect(btn, '你找到了' + target.name + '！');
+      else cmdWrong(btn, '这是' + it.name + '哦，再找一找' + target.name + '！');
+    },
+  })));
+  speak(cmdPrompt);
+}
+
+function roundSound() {
+  const items = shuffle(SOUND_ANIMALS).slice(0, 4);
+  const target = pick(items);
+  cmdPrompt = '听好啦！哪个小动物会' + target.sound + '叫呀？';
+  setCmdText('谁会 ' + target.sound + ' 叫呀？');
+  renderCmdItems(items.map(it => ({
+    emoji: it.emoji,
+    label: it.name,
+    onClick: (btn) => {
+      Sfx.pop();
+      if (it === target) cmdCorrect(btn, target.name + '会' + target.sound + '叫，' + target.sound + '！');
+      else cmdWrong(btn, it.name + '会' + it.sound + '叫。再想一想，谁会' + target.sound + '叫呢？');
+    },
+  })));
+  speak(cmdPrompt);
+}
+
+function roundSize() {
+  const item = pick(SIZE_ITEMS);
+  const wantBig = Math.random() < 0.5;
+  const word = wantBig ? '大大的' : '小小的';
+  const otherWord = wantBig ? '小小的' : '大大的';
+  cmdPrompt = '请点一点，' + word + item.name + '！';
+  setCmdText('请点一点：' + word + item.name);
+  const makeItem = (isBig) => ({
+    emoji: item.emoji,
+    sizeClass: isBig ? 'big' : 'small',
+    label: isBig ? '大' : '小',
+    onClick: (btn) => {
+      Sfx.pop();
+      if (isBig === wantBig) cmdCorrect(btn, '这就是' + word + item.name + '！');
+      else cmdWrong(btn, '这个是' + otherWord + item.name + '哦，再试一试！');
+    },
+  });
+  renderCmdItems(shuffle([makeItem(true), makeItem(false)]));
+  speak(cmdPrompt);
+}
+
+function roundJudge() {
+  let q;
+  do { q = pick(JUDGE_QUESTIONS); } while (q.text === lastJudgeText && JUDGE_QUESTIONS.length > 1);
+  lastJudgeText = q.text;
+  cmdPrompt = '听好啦！' + q.text + '，对不对呀？';
+  setCmdText(q.text + '，对不对？');
+
+  const stage = $('#cmd-stage');
+  stage.innerHTML = '';
+  const figure = document.createElement('div');
+  figure.className = 'judge-figure';
+  figure.textContent = q.emoji;
+  stage.appendChild(figure);
+
+  const explain = q.answer ? '这句话是对的！' : '这句话不对哦！';
+  [{ yes: true, cls: 'judge-yes', icon: '✔️', label: '对' },
+   { yes: false, cls: 'judge-no', icon: '✖️', label: '不对' }].forEach((cfg, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'judge-btn ' + cfg.cls;
+    btn.style.setProperty('--in-delay', (0.1 + i * 0.08) + 's');
+    btn.innerHTML = '<span class="judge-icon">' + cfg.icon + '</span><span>' + cfg.label + '</span>';
+    btn.addEventListener('click', () => {
+      Sfx.pop();
+      if (cfg.yes === q.answer) {
+        btn.classList.add('right');
+        cmdCorrect(btn, q.text + '，' + explain);
+      } else {
+        cmdWrong(btn, soothe() + q.text + '，是这样吗？');
+      }
+    });
+    stage.appendChild(btn);
+  });
+  speak(cmdPrompt);
+}
+
+function startCommandRound() {
+  clearAutoNext();
+  cmdRecorded = false;
+  /* 换题后短暂锁定，防止庆祝时的连点误触新题 */
+  if (cmdUnlockTimer) clearTimeout(cmdUnlockTimer);
+  cmdLocked = true;
+  cmdUnlockTimer = setTimeout(() => { cmdLocked = false; }, 400);
+  $('#btn-cmd-next').classList.add('hidden');
+  const types = ['color', 'sound', 'size', 'judge'];
+  let type;
+  do { type = pick(types); } while (type === lastCmdType);
+  lastCmdType = type;
+  ({ color: roundColor, sound: roundSound, size: roundSize, judge: roundJudge })[type]();
+}
+
+function enterCommands() {
+  showScreen('commands');
+  sceneGreeting = '我们来玩听指令！';
+  startCommandRound();
+}
+
+/* ================= 场景四：识字乐园（一年级高频字，字→图 / 图→字） ================= */
+const LITERACY_WORDS = [
+  /* L1：具象单字 */
+  { text: '猫', pinyin: 'māo', emoji: '🐱', lv: 1 },
+  { text: '狗', pinyin: 'gǒu', emoji: '🐶', lv: 1 },
+  { text: '鱼', pinyin: 'yú', emoji: '🐟', lv: 1 },
+  { text: '鸟', pinyin: 'niǎo', emoji: '🐦', lv: 1 },
+  { text: '花', pinyin: 'huā', emoji: '🌸', lv: 1 },
+  { text: '树', pinyin: 'shù', emoji: '🌳', lv: 1 },
+  { text: '山', pinyin: 'shān', emoji: '⛰️', lv: 1 },
+  { text: '水', pinyin: 'shuǐ', emoji: '💧', lv: 1 },
+  { text: '日', pinyin: 'rì', emoji: '🌞', lv: 1 },
+  { text: '月', pinyin: 'yuè', emoji: '🌙', lv: 1 },
+  { text: '火', pinyin: 'huǒ', emoji: '🔥', lv: 1 },
+  { text: '手', pinyin: 'shǒu', emoji: '✋', lv: 1 },
+  { text: '车', pinyin: 'chē', emoji: '🚗', lv: 1 },
+  { text: '马', pinyin: 'mǎ', emoji: '🐴', lv: 1 },
+  { text: '牛', pinyin: 'niú', emoji: '🐮', lv: 1 },
+  { text: '羊', pinyin: 'yáng', emoji: '🐑', lv: 1 },
+  /* L2：常见单字 */
+  { text: '云', pinyin: 'yún', emoji: '☁️', lv: 2 },
+  { text: '雨', pinyin: 'yǔ', emoji: '🌧️', lv: 2 },
+  { text: '雪', pinyin: 'xuě', emoji: '❄️', lv: 2 },
+  { text: '电', pinyin: 'diàn', emoji: '⚡', lv: 2 },
+  { text: '门', pinyin: 'mén', emoji: '🚪', lv: 2 },
+  { text: '家', pinyin: 'jiā', emoji: '🏠', lv: 2 },
+  { text: '船', pinyin: 'chuán', emoji: '⛵', lv: 2 },
+  { text: '星', pinyin: 'xīng', emoji: '⭐', lv: 2 },
+  { text: '灯', pinyin: 'dēng', emoji: '💡', lv: 2 },
+  { text: '书', pinyin: 'shū', emoji: '📖', lv: 2 },
+  { text: '笔', pinyin: 'bǐ', emoji: '✏️', lv: 2 },
+  { text: '伞', pinyin: 'sǎn', emoji: '☂️', lv: 2 },
+  /* L3：两字词 */
+  { text: '苹果', pinyin: 'píng guǒ', emoji: '🍎', lv: 3 },
+  { text: '香蕉', pinyin: 'xiāng jiāo', emoji: '🍌', lv: 3 },
+  { text: '太阳', pinyin: 'tài yáng', emoji: '🌞', lv: 3 },
+  { text: '月亮', pinyin: 'yuè liang', emoji: '🌙', lv: 3 },
+  { text: '老虎', pinyin: 'lǎo hǔ', emoji: '🐯', lv: 3 },
+  { text: '兔子', pinyin: 'tù zi', emoji: '🐰', lv: 3 },
+  { text: '汽车', pinyin: 'qì chē', emoji: '🚗', lv: 3 },
+  { text: '飞机', pinyin: 'fēi jī', emoji: '✈️', lv: 3 },
+  { text: '蛋糕', pinyin: 'dàn gāo', emoji: '🎂', lv: 3 },
+  { text: '彩虹', pinyin: 'cǎi hóng', emoji: '🌈', lv: 3 },
+];
+
+let litTarget = null;
+let litLocked = false;
+let litRecorded = false;
+let litPrompt = '';
+let litBubbleText = '';
+let litUnlockTimer = null;
+
+/* 识字题干播报：图→字模式的气泡不能露出答案字形，用拼音版气泡替代 */
+function speakLit() {
+  if (litBubbleText) {
+    showBubble(litBubbleText);
+    speak(litPrompt, { noBubble: true });
+  } else {
+    speak(litPrompt);
+  }
+}
+
+function startLitRound() {
+  clearAutoNext();
+  litRecorded = false;
+  if (litUnlockTimer) clearTimeout(litUnlockTimer);
+  litLocked = true;
+  litUnlockTimer = setTimeout(() => { litLocked = false; }, 400);
+  $('#btn-lit-next').classList.add('hidden');
+
+  const lv = Progress.get('literacy').lv;
+  /* 70% 当前层新字，30% 复习更低层 */
+  let pool = LITERACY_WORDS.filter(w => w.lv === lv);
+  if (lv > 1 && Math.random() < 0.3) pool = LITERACY_WORDS.filter(w => w.lv < lv);
+  let target;
+  do { target = pick(pool); } while (litTarget && target.text === litTarget.text && pool.length > 1);
+  litTarget = target;
+
+  /* 干扰项：字与图都不能重复 */
+  const distractors = [];
+  for (const w of shuffle(LITERACY_WORDS)) {
+    if (w.text === target.text || w.emoji === target.emoji) continue;
+    if (distractors.some(d => d.emoji === w.emoji || d.text === w.text)) continue;
+    distractors.push(w);
+    if (distractors.length === 3) break;
+  }
+  const mode = lv === 1 ? 'char2pic' : (lv === 2 ? 'pic2char' : (Math.random() < 0.5 ? 'char2pic' : 'pic2char'));
+  const options = shuffle([target].concat(distractors));
+
+  const stage = $('#lit-stage');
+  stage.innerHTML = '';
+  const card = document.createElement('div');
+  card.className = 'lit-card';
+  if (mode === 'char2pic') {
+    card.innerHTML = '<span class="lit-pinyin">' + target.pinyin + '</span><span class="lit-char">' + target.text + '</span>';
+  } else {
+    card.innerHTML = '<span class="lit-figure">' + target.emoji + '</span>';
+  }
+  stage.appendChild(card);
+
+  options.forEach((w, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'cmd-item';
+    btn.style.setProperty('--in-delay', (i * 0.07) + 's');
+    const span = document.createElement('span');
+    span.className = 'cmd-emoji' + (mode === 'char2pic' ? '' : ' lit-choice');
+    span.textContent = mode === 'char2pic' ? w.emoji : w.text;
+    btn.appendChild(span);
+    btn.setAttribute('aria-label', w.text);
+    btn.addEventListener('click', () => onLitAnswer(w, btn, mode));
+    stage.appendChild(btn);
+  });
+
+  if (mode === 'char2pic') {
+    $('#lit-text').textContent = '这个字念：' + target.text;
+    litBubbleText = '';
+    litPrompt = '这个字念，' + target.text + '。找一找，哪个是' + target.text + '呀？';
+  } else {
+    /* 图→字：题面不能露出答案字形；无语音设备除外（否则读音无从传达） */
+    const shown = Speech.enabled ? target.pinyin : target.text;
+    $('#lit-text').textContent = '哪个字念 ' + shown + '？';
+    litBubbleText = '哪个字念 ' + shown + '？';
+    litPrompt = '找一找，哪个字念，' + target.text + '？';
+  }
+  speakLit();
+}
+
+function onLitAnswer(w, btn, mode) {
+  if (litLocked) return;
+  Sfx.pop();
+  const ok = w.text === litTarget.text;
+  if (!litRecorded) { Progress.record('literacy', ok); litRecorded = true; }
+  if (ok) {
+    litLocked = true;
+    btn.classList.add('right');
+    celebrate(btn);
+    const dur = speakSuccess(litTarget.text + '，' + litTarget.text + '！你认识这个字啦！');
+    $('#btn-lit-next').classList.remove('hidden');
+    autoNextTimer = setTimeout(startLitRound, dur + 2200);
+  } else {
+    btn.classList.remove('shake');
+    void btn.offsetWidth;
+    btn.classList.add('shake');
+    Sfx.buzz();
+    speak(mode === 'char2pic'
+      ? ('这是' + w.text + '哦，再找一找' + litTarget.text + '？')
+      : ('再看一看，' + litTarget.text + ' 这个字在哪里呢？'));
+  }
+}
+
+function enterLiteracy() {
+  showScreen('literacy');
+  sceneGreeting = '欢迎来到识字乐园！';
+  startLitRound();
+}
+
+/* ================= 场景五：魔法逻辑（找规律 / 找不同） ================= */
+const PATTERN_POOLS = [
+  ['🍎', '🍌', '🍇'],
+  ['🔴', '🔵', '🟡'],
+  ['⭐', '🌙', '☁️'],
+  ['🐱', '🐶', '🐰'],
+  ['🌸', '🍀', '🍄'],
+  ['🚗', '🚌', '⛵'],
+];
+const ODD_CATEGORIES = [
+  { name: '水果', items: ['🍎', '🍌', '🍇', '🍊', '🍓', '🍉'] },
+  { name: '小动物', items: ['🐱', '🐶', '🐰', '🐯', '🐮', '🐵'] },
+  { name: '交通工具', items: ['🚗', '🚌', '🚂', '✈️', '⛵', '🚲'] },
+  { name: '穿的', items: ['👕', '👗', '🧦', '🧤', '👟', '🧢'] },
+  { name: '吃的', items: ['🍚', '🍞', '🎂', '🍜', '🥚', '🍪'] },
+  { name: '天上的', items: ['🌞', '🌙', '⭐', '☁️', '🌈', '⚡'] },
+];
+
+let logicLocked = false;
+let logicRecorded = false;
+let logicPrompt = '';
+let logicUnlockTimer = null;
+let lastLogicType = null;
+
+function startLogicRound() {
+  clearAutoNext();
+  logicRecorded = false;
+  if (logicUnlockTimer) clearTimeout(logicUnlockTimer);
+  logicLocked = true;
+  logicUnlockTimer = setTimeout(() => { logicLocked = false; }, 400);
+  $('#btn-logic-next').classList.add('hidden');
+
+  const lv = Progress.get('logic').lv;
+  const type = lastLogicType === 'pattern' ? 'oddone' : (lastLogicType === 'oddone' ? 'pattern' : pick(['pattern', 'oddone']));
+  lastLogicType = type;
+  if (type === 'pattern') renderPatternRound(lv);
+  else renderOddOneRound(lv);
+}
+
+function logicCorrect(btn, successText) {
+  logicLocked = true;
+  btn.classList.add('right');
+  celebrate(btn);
+  const dur = speakSuccess(successText);
+  $('#btn-logic-next').classList.remove('hidden');
+  autoNextTimer = setTimeout(startLogicRound, dur + 2200);
+}
+
+function logicWrong(btn, msg) {
+  btn.classList.remove('shake');
+  void btn.offsetWidth;
+  btn.classList.add('shake');
+  Sfx.buzz();
+  speak(msg);
+}
+
+/* 找规律：AB / AAB·ABB / ABC */
+function renderPatternRound(lv) {
+  const pool = shuffle(pick(PATTERN_POOLS));
+  const A = pool[0], B = pool[1], C = pool[2];
+  let unit;
+  if (lv === 1) unit = [A, B];
+  else if (lv === 2) unit = Math.random() < 0.5 ? [A, A, B] : [A, B, B];
+  else unit = [A, B, C];
+  const seqLen = 5;
+  const seq = Array.from({ length: seqLen }, (_, i) => unit[i % unit.length]);
+  const answer = unit[seqLen % unit.length];
+  const options = shuffle([answer].concat(shuffle(pool.filter(x => x !== answer)).slice(0, 2)));
+
+  const stage = $('#logic-stage');
+  stage.innerHTML = '';
+  const rowEl = document.createElement('div');
+  rowEl.className = 'pattern-row';
+  seq.forEach(s => {
+    const slot = document.createElement('span');
+    slot.className = 'pattern-slot';
+    slot.textContent = s;
+    rowEl.appendChild(slot);
+  });
+  const qSlot = document.createElement('span');
+  qSlot.className = 'pattern-slot pattern-q';
+  qSlot.textContent = '？';
+  rowEl.appendChild(qSlot);
+  stage.appendChild(rowEl);
+
+  options.forEach((s, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'cmd-item';
+    btn.style.setProperty('--in-delay', (i * 0.07) + 's');
+    const span = document.createElement('span');
+    span.className = 'cmd-emoji';
+    span.textContent = s;
+    btn.appendChild(span);
+    btn.addEventListener('click', () => {
+      if (logicLocked) return;
+      Sfx.pop();
+      const ok = s === answer;
+      if (!logicRecorded) { Progress.record('logic', ok); logicRecorded = true; }
+      if (ok) {
+        qSlot.textContent = answer;
+        qSlot.classList.remove('pattern-q');
+        qSlot.classList.add('reveal'); /* 谜底跳进空格 */
+        logicCorrect(btn, '就是它！它们排队是有规律的！');
+      } else {
+        logicWrong(btn, soothe() + '看一看它们排队的顺序，问号那里该是谁呀？');
+      }
+    });
+    stage.appendChild(btn);
+  });
+
+  $('#logic-text').textContent = '接下来该是谁？';
+  logicPrompt = '看一看它们排队的规律，问号那里该是谁呀？';
+  speak(logicPrompt);
+}
+
+/* 找不同：三个同类 + 一个不同类 */
+function renderOddOneRound(lv) {
+  let catA, catB;
+  if (lv >= 3 && Math.random() < 0.5) {
+    /* 易混组合：多数是水果，混入一个别的吃的（反向会有歧义，不出） */
+    catA = ODD_CATEGORIES.find(c => c.name === '水果');
+    catB = ODD_CATEGORIES.find(c => c.name === '吃的');
+  } else {
+    let two;
+    do { two = shuffle(ODD_CATEGORIES).slice(0, 2); }
+    while (two[0].name === '吃的' && two[1].name === '水果');
+    catA = two[0];
+    catB = two[1];
+  }
+  const majors = shuffle(catA.items).slice(0, 3);
+  const odd = pick(catB.items.filter(x => !majors.includes(x)));
+  const items = shuffle(majors.concat([odd]));
+
+  const stage = $('#logic-stage');
+  stage.innerHTML = '';
+  items.forEach((s, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'cmd-item';
+    btn.style.setProperty('--in-delay', (i * 0.07) + 's');
+    const span = document.createElement('span');
+    span.className = 'cmd-emoji';
+    span.textContent = s;
+    btn.appendChild(span);
+    btn.addEventListener('click', () => {
+      if (logicLocked) return;
+      Sfx.pop();
+      const ok = s === odd;
+      if (!logicRecorded) { Progress.record('logic', ok); logicRecorded = true; }
+      if (ok) {
+        const isFruitMix = catA.name === '水果' && catB.name === '吃的';
+        logicCorrect(btn, isFruitMix
+          ? '其他都是水果，只有它不是水果！'
+          : ('其他都是' + catA.name + '，只有它是' + catB.name + '！'));
+      } else {
+        logicWrong(btn, soothe() + '哪一个和其他的不是一类呢？');
+      }
+    });
+    stage.appendChild(btn);
+  });
+
+  $('#logic-text').textContent = '哪个和别的不一样？';
+  logicPrompt = '找一找，哪一个和其他的不是一类呀？';
+  speak(logicPrompt);
+}
+
+function enterLogic() {
+  showScreen('logic');
+  sceneGreeting = '欢迎来到魔法逻辑！';
+  startLogicRound();
+}
+
+/* ================= 音色选择面板（家长用） ================= */
+function renderVoiceList() {
+  const list = $('#voice-list');
+  list.innerHTML = '';
+  if (!Speech.enabled || !Speech.zhVoices.length) {
+    const empty = document.createElement('div');
+    empty.className = 'voice-empty';
+    empty.textContent = Speech.enabled
+      ? '没有找到中文语音。在系统设置里下载中文语音后，这里就能选啦。'
+      : '这台设备不支持语音朗读，游戏会用文字气泡代替。';
+    list.appendChild(empty);
+    return;
+  }
+  Speech.zhVoices.forEach((v, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'voice-item' + (Speech.voice && Speech.voice.voiceURI === v.voiceURI ? ' active' : '');
+    const name = document.createElement('span');
+    name.textContent = v.name;
+    if (i === 0) {
+      /* 评分最高的音色标"推荐" */
+      const rec = document.createElement('span');
+      rec.className = 'voice-rec';
+      rec.textContent = '推荐';
+      name.appendChild(rec);
+    }
+    const lang = document.createElement('span');
+    lang.className = 'voice-lang';
+    lang.textContent = v.lang + '\n' + (v.localService ? '设备语音' : '联网语音');
+    btn.setAttribute('aria-pressed', String(Speech.voice?.voiceURI === v.voiceURI));
+    btn.appendChild(name);
+    btn.appendChild(lang);
+    btn.addEventListener('click', () => {
+      Speech.use(v.voiceURI || v.name);
+      renderVoiceList();
+      previewVoice();
+    });
+    list.appendChild(btn);
+  });
+  /* 当前选中项滚入可视区（长列表时不至于看不到勾选在哪） */
+  const act = list.querySelector('.voice-item.active');
+  if (act) act.scrollIntoView({ block: 'nearest' });
+}
+function updateVoiceRate() {
+  $('#voice-rate').value = String(Speech.rate);
+  $('#voice-rate-value').textContent = Speech.rate.toFixed(2) + '×';
+  document.querySelectorAll('[data-voice-rate]').forEach(button => {
+    button.setAttribute('aria-pressed', String(Number(button.dataset.voiceRate) === Speech.rate));
+  });
+}
+function previewVoice() {
+  speak('你好呀，小朋友。今天我们一起认识小动物，再来数一数，树上有几个苹果吧！', { noBubble: true, preview: true });
+}
+function openVoicePanel() {
+  /* 暂停自动换题并停掉当前播报，避免面板打开期间游戏在遮罩后换题、掐断试听 */
+  clearAutoNext();
+  stopSpeak();
+  updateVoiceRate();
+  voiceStatus('选好声音后，点击试听。');
+  $('#voice-overlay').classList.remove('hidden');
+  $('#voice-panel').classList.remove('hidden');
+  renderVoiceList();
+}
+function closeVoicePanel() {
+  $('#voice-overlay').classList.add('hidden');
+  $('#voice-panel').classList.add('hidden');
+  stopSpeak();
+}
+
+/* ================= 发呆引导：22 秒无操作时温柔复述当前题目（每次触摸后最多一次） ================= */
+let idleTimer = null;
+let idleNudged = false;
+
+function idleRepeat() {
+  const active = document.querySelector('.screen.active');
+  if (!active) return false;
+  if (active.id === 'screen-counting' && countPrompt) { speak('小朋友，' + countPrompt); return true; }
+  if (active.id === 'screen-commands' && cmdPrompt) { speak('小朋友，' + cmdPrompt); return true; }
+  if (active.id === 'screen-literacy' && litPrompt) { speakLit(); return true; }
+  if (active.id === 'screen-logic' && logicPrompt) { speak('小朋友，' + logicPrompt); return true; }
+  if (active.id === 'screen-animals' && seekTarget) { speak('小朋友，请找一找，' + seekTarget.name + '在哪里呀？'); return true; }
+  return false;
+}
+
+function armIdleNudge() {
+  if (idleTimer) clearTimeout(idleTimer);
+  idleTimer = setTimeout(() => {
+    if (idleNudged) return;
+    if (document.visibilityState !== 'visible') return;
+    if (!$('#voice-panel').classList.contains('hidden') || !$('#parent-panel').classList.contains('hidden')) return;
+    if (idleRepeat()) idleNudged = true;
+  }, 22000);
+}
+
+/* ================= 初始化与事件绑定 ================= */
+function init() {
+  loadStars();
+  Progress.load();
+  Speech.init();
+  if (document.body.dataset.collection === 'true') $('#collection-return').classList.remove('hidden');
+  $('#voice-rate').addEventListener('input', e => { Speech.setRate(e.target.value); updateVoiceRate(); });
+  document.querySelectorAll('[data-voice-rate]').forEach(button => button.addEventListener('click', () => {
+    Speech.setRate(button.dataset.voiceRate); updateVoiceRate(); previewVoice();
+  }));
+  $('#btn-voice-preview').addEventListener('click', previewVoice);
+  $('#btn-voice-stop').addEventListener('click', () => { stopSpeak(); voiceStatus('已停止试听'); });
+  window.addEventListener('pagehide', stopSpeak);
+  document.addEventListener('visibilitychange', () => { if (document.hidden) stopSpeak(); });
+
+  /* 首次触摸解锁音频上下文（浏览器自动播放策略）+ 点击处星尘 + 重置发呆提醒 */
+  document.addEventListener('pointerdown', (e) => {
+    Sfx.ensure();
+    if (e.isPrimary) tapBurst(e.clientX, e.clientY);
+    idleNudged = false;
+    armIdleNudge();
+  });
+
+  scheduleWiggle();
+
+  document.querySelectorAll('.menu-card').forEach(card => {
+    card.addEventListener('click', () => {
+      Sfx.ding();
+      const scene = card.dataset.scene;
+      if (scene === 'animals') enterAnimals();
+      else if (scene === 'counting') enterCounting();
+      else if (scene === 'commands') enterCommands();
+      else if (scene === 'literacy') enterLiteracy();
+      else if (scene === 'logic') enterLogic();
+    });
+  });
+
+  $('#btn-home').addEventListener('click', () => {
+    Sfx.pop();
+    showScreen('home');
+  });
+
+  /* 音色面板 */
+  $('#btn-voice').addEventListener('click', () => { Sfx.pop(); openVoicePanel(); });
+  $('#btn-voice-close').addEventListener('click', () => { Sfx.pop(); closeVoicePanel(); });
+  $('#voice-overlay').addEventListener('click', closeVoicePanel);
+
+  /* 勋章墙与家长看板 */
+  $('#btn-medals').addEventListener('click', () => { Sfx.ding(); enterMedals(); });
+  $('#btn-parent').addEventListener('click', () => { Sfx.pop(); openParentPanel(); });
+  $('#btn-parent-close').addEventListener('click', () => { Sfx.pop(); closeParentPanel(); });
+  $('#parent-overlay').addEventListener('click', closeParentPanel);
+
+  /* 清空记录和星星：双击确认，防误触；文案先讲清后果 */
+  $('#btn-parent-reset').addEventListener('click', () => {
+    const btn = $('#btn-parent-reset');
+    if (!resetArmed) {
+      resetArmed = true;
+      btn.textContent = '再按一次，记录和星星都会清空';
+      resetTimer = setTimeout(disarmReset, 3000);
+    } else {
+      if (resetTimer) { clearTimeout(resetTimer); resetTimer = null; }
+      resetArmed = false;
+      try {
+        localStorage.removeItem('kidgame_progress');
+        localStorage.removeItem('kidgame_stars');
+        localStorage.removeItem('kidgame_meta');
+      } catch (e) { /* 忽略 */ }
+      correctStreak = 0;
+      loadStars();
+      Progress.load();
+      renderParentList();
+      btn.textContent = '已清空 ✓';
+      setTimeout(() => { btn.textContent = '清空记录和星星'; }, 2000);
+    }
+  });
+
+  /* 识字乐园 */
+  $('#btn-lit-repeat').addEventListener('click', () => speakLit());
+  $('#btn-lit-next').addEventListener('click', () => {
+    Sfx.pop();
+    startLitRound();
+  });
+
+  /* 魔法逻辑 */
+  $('#btn-logic-repeat').addEventListener('click', () => speak(logicPrompt));
+  $('#btn-logic-next').addEventListener('click', () => {
+    Sfx.pop();
+    startLogicRound();
+  });
+
+  /* 题干大卡本身可点重听：对不识字的孩子比小喇叭按钮更直觉 */
+  $('#count-display').addEventListener('click', () => { if (countPrompt) speak(countPrompt); });
+  $('#cmd-text').addEventListener('click', () => { if (cmdPrompt) speak(cmdPrompt); });
+  $('#lit-text').addEventListener('click', () => { if (litPrompt) speakLit(); });
+  $('#logic-text').addEventListener('click', () => { if (logicPrompt) speak(logicPrompt); });
+  ['#count-display', '#cmd-text', '#lit-text', '#logic-text'].forEach(sel => {
+    $(sel).setAttribute('role', 'button');
+    $(sel).setAttribute('aria-label', '再听一遍题目');
+  });
+
+  /* 动物乐园 */
+  $('#btn-seek').addEventListener('click', startSeek);
+  $('#btn-seek-repeat').addEventListener('click', () => {
+    if (seekTarget) speak('请找一找，' + seekTarget.name + '在哪里呀？');
+  });
+  $('#btn-seek-cancel').addEventListener('click', () => {
+    Sfx.pop();
+    endSeek();
+    speak('好的，我们随便看看小动物吧！');
+  });
+
+  /* 数一数 */
+  $('#btn-count-repeat').addEventListener('click', () => speak(countPrompt));
+  $('#btn-count-next').addEventListener('click', () => {
+    Sfx.pop();
+    startCountRound();
+  });
+
+  /* 听指令 */
+  $('#btn-cmd-repeat').addEventListener('click', () => speak(cmdPrompt));
+  $('#btn-cmd-next').addEventListener('click', () => {
+    Sfx.pop();
+    startCommandRound();
+  });
+}
+
+init();
+</script>
+</body>
+</html>
