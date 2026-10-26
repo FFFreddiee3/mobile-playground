@@ -1119,6 +1119,7 @@ const Sfx = {
 /* ================= 语音（Web Speech API + 文字气泡降级） ================= */
 const Speech = {
   enabled: 'speechSynthesis' in window,
+  suspended: false,
   voice: null,
   zhVoices: [],
   savedName: null,
@@ -1233,6 +1234,7 @@ function voiceStatus(text) {
 /* 取消旧播报后仅保留最新一条，切换音色和快速点击不会把旧题排在队尾。 */
 function speak(text, opts) {
   opts = opts || {};
+  if (Speech.suspended || document.hidden) return;
   if (sceneGreeting && !opts.preview) {
     text = sceneGreeting + text;
     sceneGreeting = '';
@@ -1246,7 +1248,7 @@ function speak(text, opts) {
   try { speechSynthesis.cancel(); } catch (e) { /* 仍尝试播放本条 */ }
   Speech.utterances = [];
   setTimeout(() => {
-    if (token !== speakToken) return;
+    if (token !== speakToken || Speech.suspended || document.hidden) return;
     try {
       const parts = splitSentences(text);
       Speech.utterances = parts.map((part, index) => {
@@ -1274,6 +1276,7 @@ function speak(text, opts) {
   }, 60);
 }
 function stopSpeak() {
+  voiceStatus('');
   speakToken++;
   Speech.utterances = [];
   if (Speech.enabled) {
@@ -1464,7 +1467,7 @@ function renderParentList() {
   list.appendChild(tip);
 }
 function openParentPanel() {
-  clearAutoNext();
+  pauseLearningTimers();
   stopSpeak();
   renderParentList();
   $('#parent-overlay').classList.remove('hidden');
@@ -1483,6 +1486,7 @@ function closeParentPanel() {
   $('#parent-overlay').classList.add('hidden');
   $('#parent-panel').classList.add('hidden');
   disarmReset();
+  resumeLearningTimers();
 }
 
 /* ================= 撒花庆祝 ================= */
@@ -1555,9 +1559,51 @@ function celebrate(fromEl) {
 }
 
 /* ================= 屏幕切换 ================= */
-let autoNextTimer = null;
-function clearAutoNext() {
-  if (autoNextTimer) { clearTimeout(autoNextTimer); autoNextTimer = null; }
+/* 换题、数完出选项和划掉动作共用暂停规则，各自只保留一个待执行任务。 */
+function learningCanRun() {
+  return !Speech.suspended && !document.hidden
+    && $('#voice-panel').classList.contains('hidden')
+    && $('#parent-panel').classList.contains('hidden');
+}
+function createLearningTimer() {
+  let timer = null, pending = null;
+  function clear() {
+    if (timer !== null) clearTimeout(timer);
+    timer = null;
+    pending = null;
+  }
+  function pause() {
+    if (timer === null || !pending) return;
+    pending.remaining = Math.max(0, pending.due - performance.now());
+    clearTimeout(timer);
+    timer = null;
+  }
+  function resume() {
+    if (timer !== null || !pending || !learningCanRun()) return;
+    const task = pending;
+    task.due = performance.now() + task.remaining;
+    const handle = setTimeout(() => {
+      if (pending !== task || timer !== handle) return;
+      timer = null;
+      if (!learningCanRun()) { task.remaining = 0; return; }
+      pending = null;
+      task.callback();
+    }, task.remaining);
+    timer = handle;
+  }
+  return { clear, pause, resume, schedule(callback, delay) {
+    clear();
+    pending = { callback, remaining: delay, due: 0 };
+    resume();
+  } };
+}
+const autoNextTimer = createLearningTimer();
+function clearAutoNext() { autoNextTimer.clear(); }
+function pauseLearningTimers() {
+  for (const timer of [autoNextTimer, countChoicesTimer, crossTimer]) timer.pause();
+}
+function resumeLearningTimers() {
+  for (const timer of [autoNextTimer, countChoicesTimer, crossTimer]) timer.resume();
 }
 function showScreen(id) {
   clearAutoNext();
@@ -1690,7 +1736,7 @@ function onAnimalClick(animal, btn) {
       celebrate(btn);
       /* 统一语音出口（夸奖轮换 + 连击彩蛋），讲完自动出下一题，拉平全站节奏 */
       const dur = speakSuccess('你找到' + found.name + '啦！' + found.intro);
-      autoNextTimer = setTimeout(startSeek, dur + 2200);
+      autoNextTimer.schedule(startSeek, dur + 2200);
     } else {
       btn.classList.remove('shake');
       void btn.offsetWidth;
@@ -1766,20 +1812,16 @@ let countLocked = false;
 let countAnswered = false;
 let countPrompt = '';
 let countUnlockTimer = null;
-/* 数完→出选项的过渡定时器：独立于 autoNextTimer，避免被音色面板的 clearAutoNext 误杀导致回合死锁 */
-let countChoicesTimer = null;
-function clearCountChoicesTimer() {
-  if (countChoicesTimer) { clearTimeout(countChoicesTimer); countChoicesTimer = null; }
-}
+/* 出选项独立于自动换题，但共享面板与页面的暂停规则。 */
+const countChoicesTimer = createLearningTimer();
+function clearCountChoicesTimer() { countChoicesTimer.clear(); }
 
 let mathMode = 'count';
 let mathRecorded = false;
 let subCrossed = false;
 /* 划掉动画定时器：统一清理，防跨回合/跨场景泄漏 */
-let crossTimer = null;
-function clearCrossTimer() {
-  if (crossTimer) { clearTimeout(crossTimer); crossTimer = null; }
-}
+const crossTimer = createLearningTimer();
+function clearCrossTimer() { crossTimer.clear(); }
 
 /* 划掉动作与语音叙述同拍：按动作词在题干中的位置估算触发时刻（约 250ms/字，与气泡时长同源），
    到点后逐个划掉并配轻快短音（不复用答错音 buzz，避免语义混淆）；无语音设备回退 900ms。
@@ -1796,9 +1838,9 @@ function scheduleCross(items, actionWord) {
     }
     items[i].classList.add('sub-item', 'taken');
     Sfx.tone(520 - i * 30, 0.08, 'triangle', 0, 0.1);
-    crossTimer = setTimeout(() => step(i + 1), 160);
+    crossTimer.schedule(() => step(i + 1), 160);
   };
-  crossTimer = setTimeout(() => step(0), delay);
+  crossTimer.schedule(() => step(0), delay);
 }
 /* 每回合由渲染函数设置的讲解与提示文案（count 模式除外） */
 let mathSuccessText = '';
@@ -1929,7 +1971,7 @@ function onCompareChoice(side, n, a, b, askMore) {
     const other = n === a ? b : a;
     const dur = speakSuccess('这边有' + numWord(n) + countTheme.unit + '，那边有' + numWord(other) + countTheme.unit + '，' + numCN20(n) + '比' + numCN20(other) + (askMore ? '多' : '少') + '！');
     $('#btn-count-next').classList.remove('hidden');
-    autoNextTimer = setTimeout(startCountRound, dur + 2200);
+    autoNextTimer.schedule(startCountRound, dur + 2200);
   } else {
     side.classList.remove('shake');
     void side.offsetWidth;
@@ -2307,8 +2349,8 @@ function onCountTap(btn) {
     document.querySelectorAll('.count-item').forEach((el, i) => {
       setTimeout(() => el.classList.add('cheer'), i * 90);
     });
-    /* 独立定时器：由 showScreen/startCountRound 清理，音色面板不干预 */
-    countChoicesTimer = setTimeout(showCountChoices, 1000);
+    /* 场景或回合切换清理，面板和页面隐藏只暂停。 */
+    countChoicesTimer.schedule(showCountChoices, 1000);
   }
 }
 
@@ -2317,8 +2359,8 @@ function showCountChoices() {
   if (!countLocked || countAnswered) return;
   if (!document.getElementById('screen-counting').classList.contains('active')) return;
   /* 音色/家长面板打开时顺延，关闭后再弹出选项，避免语音与试听打架 */
-  if (!$('#voice-panel').classList.contains('hidden') || !$('#parent-panel').classList.contains('hidden')) {
-    countChoicesTimer = setTimeout(showCountChoices, 600);
+  if (!learningCanRun()) {
+    countChoicesTimer.schedule(showCountChoices, 600);
     return;
   }
   const question = '一共有几' + countTheme.unit + countTheme.itemName + '呢？';
@@ -2348,7 +2390,7 @@ function onCountChoice(value, btn) {
     const dur = speakSuccess(successText);
     $('#btn-count-next').classList.remove('hidden');
     /* 按播报时长动态排布自动换题 */
-    autoNextTimer = setTimeout(startCountRound, dur + 2200);
+    autoNextTimer.schedule(startCountRound, dur + 2200);
   } else {
     btn.classList.add('wrong');
     Sfx.buzz();
@@ -2437,7 +2479,7 @@ function cmdCorrect(el, successText) {
   const dur = speakSuccess(successText);
   $('#btn-cmd-next').classList.remove('hidden');
   /* 按播报时长动态排布自动换题 */
-  autoNextTimer = setTimeout(startCommandRound, dur + 2200);
+  autoNextTimer.schedule(startCommandRound, dur + 2200);
 }
 
 function cmdWrong(el, msg) {
@@ -2734,7 +2776,7 @@ function onLitAnswer(w, btn, mode) {
     celebrate(btn);
     const dur = speakSuccess(litTarget.text + '，' + litTarget.text + '！你认识这个字啦！');
     $('#btn-lit-next').classList.remove('hidden');
-    autoNextTimer = setTimeout(startLitRound, dur + 2200);
+    autoNextTimer.schedule(startLitRound, dur + 2200);
   } else {
     btn.classList.remove('shake');
     void btn.offsetWidth;
@@ -2797,7 +2839,7 @@ function logicCorrect(btn, successText) {
   celebrate(btn);
   const dur = speakSuccess(successText);
   $('#btn-logic-next').classList.remove('hidden');
-  autoNextTimer = setTimeout(startLogicRound, dur + 2200);
+  autoNextTimer.schedule(startLogicRound, dur + 2200);
 }
 
 function logicWrong(btn, msg) {
@@ -2976,8 +3018,8 @@ function previewVoice() {
   speak('你好呀，小朋友。今天我们一起认识小动物，再来数一数，树上有几个苹果吧！', { noBubble: true, preview: true });
 }
 function openVoicePanel() {
-  /* 暂停自动换题并停掉当前播报，避免面板打开期间游戏在遮罩后换题、掐断试听 */
-  clearAutoNext();
+  /* 保留剩余等待时间，面板关闭后接着当前回合继续。 */
+  pauseLearningTimers();
   stopSpeak();
   updateVoiceRate();
   voiceStatus('选好声音后，点击试听。');
@@ -2989,6 +3031,7 @@ function closeVoicePanel() {
   $('#voice-overlay').classList.add('hidden');
   $('#voice-panel').classList.add('hidden');
   stopSpeak();
+  resumeLearningTimers();
 }
 
 /* ================= 发呆引导：22 秒无操作时温柔复述当前题目（每次触摸后最多一次） ================= */
@@ -3028,8 +3071,19 @@ function init() {
   }));
   $('#btn-voice-preview').addEventListener('click', previewVoice);
   $('#btn-voice-stop').addEventListener('click', () => { stopSpeak(); voiceStatus('已停止试听'); });
-  window.addEventListener('pagehide', stopSpeak);
-  document.addEventListener('visibilitychange', () => { if (document.hidden) stopSpeak(); });
+  window.addEventListener('pagehide', () => {
+    Speech.suspended = true;
+    pauseLearningTimers();
+    stopSpeak();
+  });
+  window.addEventListener('pageshow', () => {
+    Speech.suspended = false;
+    resumeLearningTimers();
+  });
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) { pauseLearningTimers(); stopSpeak(); }
+    else resumeLearningTimers();
+  });
 
   /* 首次触摸解锁音频上下文（浏览器自动播放策略）+ 点击处星尘 + 重置发呆提醒 */
   document.addEventListener('pointerdown', (e) => {
