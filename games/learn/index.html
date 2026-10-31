@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="theme-color" content="#C7E7F4">
+<meta name="theme-color" content="#DCEEE7">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="宝宝益智乐园">
@@ -897,81 +897,514 @@
     .count-badge, .voice-overlay, .voice-panel, .bubble { animation: none !important; }
     .tap-spark, .fly-star, .confetti { display: none; }
   }
+
+  /* 花园手帐。唯一学习页样式，窄屏优先，纸张受光来自左上。 */
+  :root { --paper:#FFF8EB; --sky:#DCEEE7; --ink:#284B40; --ink-soft:#5C685B; --line:#D8DCCB;
+    --sun:#E9B84B; --sun-deep:#BC8A27; --coral:#BD674E; --coral-deep:#995039;
+    --leaf:#BFD1A4; --leaf-deep:#487A56; --night:#365D64;
+    --shadow:2px 7px 0 #3553450a, 3px 10px 24px #35534512; --card-radius:24px; }
+  html { background:var(--paper); }
+  body { background:radial-gradient(ellipse at 8% 0,#FFEDBC88,transparent 45%),
+    repeating-linear-gradient(0deg,#64755904 0 1px,transparent 1px 4px),linear-gradient(#E4EFE3,var(--paper) 75%);
+    min-width:0; overflow-x:clip; }
+  body::before,body::after { animation:none; position:absolute; opacity:.3; top:70px; }
+  body::after { top:260px; right:0; left:auto; }
+  button,a { -webkit-touch-callout:none; }
+  button { min-height:44px; }
+  button:focus-visible,a:focus-visible,[role=button]:focus-visible { outline:3px solid #437B8B; outline-offset:3px; }
+  .collection-return { margin:4px 12px 0; min-height:44px; display:inline-flex; align-items:center;
+    padding:8px 12px; font-size:13px; background:#FFF8EBCC; border:1px solid #CBD5C5; }
+  header { width:100%; max-width:1000px; margin:0 auto; gap:8px; padding:8px 12px; min-height:64px; }
+  .header-side { gap:8px; min-width:0; margin-left:auto; }
+  .icon-btn { width:44px; height:44px; flex:0 0 44px; border-radius:15px; font-size:23px;
+    border-bottom-width:3px; background:#FFFCF4; box-shadow:1px 4px 8px #3553450a; }
+  #btn-pause { font-size:19px; }
+  #star-box { min-width:60px; max-width:92px; height:44px; line-height:26px; padding:7px 8px;
+    font-size:17px; border-bottom-width:3px; font-variant-numeric:tabular-nums; overflow:hidden; }
+  #star-count { display:inline-block; max-width:58px; vertical-align:bottom; overflow:hidden; text-overflow:ellipsis; }
+  #title-mini { font-size:18px; letter-spacing:0; }
+  main { max-width:1000px; min-width:0; }
+  .screen { min-width:0; padding:0 12px 20px; }
+  .screen.active { animation:screen-in .22s ease-out; }
+  #screen-home { justify-content:flex-start; padding-bottom:24px; }
+  .home-hero { position:relative; padding:12px 0 4px; display:grid; grid-template-columns:1fr 40%; align-items:center; min-height:152px; }
+  .hero-copy { position:relative; z-index:1; }
+  .eyebrow { font-size:12px; font-weight:800; letter-spacing:2px; margin:0 0 8px; color:var(--leaf-deep); }
+  .big-title { text-align:left; font-size:clamp(26px,5.5vw,40px); line-height:1.35; letter-spacing:1px; margin:0; }
+  .big-title span { animation:none; transform:none; color:var(--ink)!important; text-shadow:0 2px #fff; }
+  .big-title span:nth-last-child(-n+2) { color:#A3543F!important; }
+  .subtitle { text-align:left; font-size:14px; line-height:1.8; margin:8px 0 0; }
+  #hero-art { min-width:0; width:100%; transform:rotate(2deg); }
+  #hero-art svg { width:100%; max-height:188px; overflow:visible; }
+  .section-label { font-size:12px; letter-spacing:2px; color:var(--ink-soft); font-weight:700; margin:2px 0 12px; display:flex; align-items:center; gap:10px; }
+  .section-label::after { content:''; height:1px; flex:1; background:#B4C5AD; }
+  .menu { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; padding:0; }
+  .menu-card { position:relative; min-width:0; width:100%; padding:0 0 12px; border-radius:21px; border:1px solid #CED7C4;
+    border-bottom:4px solid #C5CBB8; background:#FFFCF5; gap:2px; transform:none; animation:screen-in .22s ease-out backwards; box-shadow:var(--shadow); }
+  .menu-card:nth-child(n) { --tilt:0deg; }
+  .menu-card::after { content:'↗'; position:absolute; right:12px; top:10px; font-size:17px; color:#284B4080; }
+  .menu-scene { height:88px; margin:0 0 7px; overflow:hidden; border-bottom:1px solid #284B4014; }
+  .menu-scene svg { width:100%; height:100%; }
+  .menu-emoji { animation:none; }
+  .menu-name { font-size:19px; letter-spacing:1px; }
+  .menu-desc { font-size:12px; line-height:1.6; padding:0 7px; text-align:center; }
+  .menu-card:last-child { grid-column:1/-1; display:grid; grid-template-columns:34% 1fr; grid-template-rows:1fr 1fr; padding:0; min-height:91px; gap:0; }
+  .menu-card:last-child .menu-scene { grid-row:1/3; height:100%; margin:0; border:0; }
+  .menu-card:last-child .menu-name { align-self:end; justify-self:start; padding-left:16px; }
+  .menu-card:last-child .menu-desc { align-self:start; justify-self:start; padding-left:16px; }
+  .garden-summary { margin:16px 0 0; width:100%; padding:12px 14px; border:1px solid #BDCCB6; border-radius:18px;
+    background:#E9EFDE; text-align:left; display:flex; align-items:center; gap:12px; box-shadow:inset 0 1px #fff; }
+  .garden-summary strong { display:block; font-size:14px; margin-bottom:3px; }
+  .garden-summary small { display:block; font-size:12px; line-height:1.5; color:var(--ink-soft); }
+  .garden-seal { font-size:28px; border:1px dashed #829979; border-radius:50%; width:48px; height:48px; display:grid; place-items:center; flex:none; }
+  .garden-summary .journal-count { margin-left:auto; white-space:nowrap; font-variant-numeric:tabular-nums; font-size:14px; font-weight:800; }
+  .coach-strip { position:relative; z-index:2; width:calc(100% - 24px); max-width:976px; margin:0 auto 12px; display:flex; gap:10px;
+    padding:10px 12px; border:1px solid #C5D1BD; border-radius:18px; background:#FFFCF4; box-shadow:1px 4px 12px #284B4008; }
+  .coach-portrait { width:42px; height:42px; flex:none; }
+  .coach-portrait svg { width:100%; height:100%; }
+  .bubble { position:static; transform:none; padding:0; max-width:none; width:100%; border:0; box-shadow:none; background:none;
+    font-size:14px; font-weight:600; line-height:1.6; max-height:68px; overflow:auto; pointer-events:auto; animation:fade-in .18s; }
+  .bubble::after { display:none; }
+  .bubble.hide { animation:fade-in .18s reverse; }
+  .coach-strip:has(.bubble.hidden) { display:none; }
+  body[data-scene=home] .coach-strip,body[data-scene=medals] .coach-strip,body[data-scene=journal] .coach-strip { display:none; }
+  .habitat-tabs { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; padding:0 0 10px; }
+  .habitat-tab { padding:7px 2px; font-size:13px; min-width:0; min-height:46px; border-bottom-width:3px; box-shadow:none; }
+  .habitat-tab.active { transform:none; background:#D7E6C3; color:var(--ink); border-bottom-color:#87A474; }
+  .seek-bar { padding:6px 8px; font-size:14px; gap:6px; margin-bottom:10px; box-shadow:none; }
+  #seek-text { flex:1; }
+  .small-btn { width:44px; min-width:44px; height:44px; padding:0 6px; font-size:20px; border-bottom-width:3px; flex:none; }
+  .animal-stage { min-height:300px; flex:1; padding:44px 10px 18px; gap:14px 8px; align-content:center; }
+  .animal-btn { width:calc((100% - 16px)/3); margin-top:0!important; min-height:106px; padding:0; gap:5px; }
+  .animal-emoji { width:80px; height:80px; max-width:100%; border-radius:25px; background:#FFFCF4;
+    box-shadow:2px 5px 0 #35534518,2px 8px 12px #35534513; animation:none; }
+  .animal-emoji svg { width:95%; height:95%; }
+  .animal-name { font-size:13px; padding:3px 9px; border-width:1px; }
+  .stage-decor { font-size:24px; }
+  .scene-actions { padding-top:12px; gap:8px; }
+  .scene-actions:has(>.hidden:only-child) { display:none; }
+  .action-btn { padding:10px 24px; min-height:48px; font-size:18px; border-bottom-width:3px; box-shadow:2px 5px 10px #BC8A271A; animation:none; }
+  .count-header,.cmd-header { gap:8px; padding:0 0 10px; }
+  .count-display,.cmd-text { flex:1; min-width:0; max-width:none; font-size:17px; padding:10px; box-shadow:none; line-height:1.5; }
+  .count-stage { min-height:290px; box-shadow:inset 0 0 0 4px #FFFCF4,var(--shadow); }
+  .count-item { font-size:36px; width:48px; height:48px; padding:3px; display:grid; place-items:center; animation:none!important; }
+  .count-item.counted { transform:translate(-50%,-50%); background:#FFFCF470; border-radius:14px; }
+  .count-badge { width:25px; height:25px; font-size:15px; top:-9px; right:-4px; background:#A3543F; }
+  .count-choices { gap:12px; padding-top:12px; }
+  .num-btn { width:70px; height:64px; border-radius:18px; font-size:32px; border-bottom-width:3px; font-variant-numeric:tabular-nums; }
+  .cmd-stage { min-height:280px; gap:14px 12px; padding:18px 12px; }
+  .cmd-item { min-width:0; width:calc((100% - 12px)/2); max-width:220px; min-height:108px; padding:12px 6px; border-radius:20px; gap:8px; }
+  .cmd-emoji { font-size:49px; filter:drop-shadow(1px 4px 0 #284B4012); }
+  .cmd-emoji.big { font-size:73px; }
+  .cmd-emoji.small { font-size:34px; }
+  .cmd-label { font-size:13px; line-height:1.5; }
+  .judge-figure { font-size:74px; padding:0; }
+  .judge-btn { width:calc((100% - 12px)/2); max-width:180px; height:96px; font-size:20px; }
+  .judge-yes { background:#487A56; border-color:#31593C; }
+  .judge-no { background:#AB5845; border-color:#854033; }
+  .lit-char { font-size:60px; padding:4px 28px; border-radius:20px; border-bottom-width:3px; }
+  .lit-pinyin { font-size:17px; }
+  .lit-card { padding-bottom:0; }
+  .lit-figure { font-size:72px; }
+  .pattern-row { gap:4px; flex-wrap:nowrap; padding:0; }
+  .pattern-slot { width:calc((100% - 20px)/6); max-width:66px; height:auto; aspect-ratio:1; font-size:28px; border-radius:10px; flex-shrink:1; }
+  .pattern-q { font-size:25px; border-width:2px; color:#7F5B16; }
+  .count-stage.add-mode { gap:12px; padding:16px 12px; }
+  .add-row { gap:8px; font-size:28px; }
+  .add-item { font-size:30px; width:44px; min-width:44px; height:44px; padding:4px; background:#FFFCF47A; border-radius:12px; }
+  .add-op { font-size:28px; margin:0; padding:2px 8px; }
+  .ten-frame { grid-template-columns:repeat(5,44px); grid-auto-rows:44px; gap:8px; padding:4px; max-width:100%; }
+  .frame-cell { min-width:0; border-width:1px; border-radius:10px; }
+  .carry-group { gap:8px; justify-content:center; max-width:100%; }
+  .compare-side { gap:8px; padding:12px 4px; font-size:30px; min-width:0; }
+  .count-stage.theme-flower { background:radial-gradient(ellipse at 10% 110%,#BFD1A4 0 48%,transparent 49%),linear-gradient(#E8EDDE,#F5E0C6); }
+  .count-stage.theme-shell { background:radial-gradient(ellipse at 85% 110%,#DFBF8A 0 45%,transparent 46%),linear-gradient(#DCEEE7,#F7E9CE); }
+  .count-stage.theme-carrot { background:radial-gradient(ellipse at 10% 120%,#93AB75 0 50%,transparent 51%),linear-gradient(#E2E7CC,#F2D5AC); }
+  .medal-title { font-size:25px; }
+  .medal-sub { font-size:14px; line-height:1.7; }
+  .medal-grid { gap:14px; padding:8px 0 20px; }
+  .medal-card { width:100%; max-width:300px; transform:none; }
+  .voice-panel { border-radius:24px; padding:16px; width:min(440px,calc(100% - 24px)); gap:12px; }
+  .voice-presets button,.voice-preview button,.parent-reset { min-height:44px; }
+  .voice-rate-label,.voice-item { font-size:14px; }
+  #voice-rate { height:44px; }
+  #voice-list { min-height:48px; }
+  .journal-heading { font-size:27px; margin:14px 0 8px; }
+  .journal-intro { font-size:14px; line-height:1.8; margin:0 0 18px; color:var(--ink-soft); }
+  .journal-chapter { padding:18px; border:1px solid #C6CFB8; border-radius:23px; background:#FFFCF4; margin:0 0 14px; box-shadow:var(--shadow); }
+  .journal-chapter h3 { font-size:18px; margin:0 0 8px; }
+  .journal-chapter p { font-size:13px; line-height:1.7; color:var(--ink-soft); margin:0 0 14px; }
+  .stamp-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px 8px; }
+  .garden-stamp { text-align:center; font-size:12px; color:var(--ink-soft); }
+  .garden-stamp i { display:grid; place-items:center; width:48px; height:48px; margin:0 auto 6px;
+    border:1px dashed #8FA482; border-radius:50%; font-size:22px; font-style:normal; color:#6B765F; background:#F0F1E6; }
+  .garden-stamp.earned i { border:2px solid #6F8F60; background:#DFEBC9; color:#355345; transform:rotate(-8deg); box-shadow:inset 0 0 0 3px #FFFCF4; }
+  .chapter-number { float:right; font-size:12px; color:var(--ink-soft); }
+  .pause-actions { display:grid; gap:12px; }
+  body[data-learning-paused=true] .game-area * { animation-play-state:paused!important; }
+  body[data-learning-paused=true] .coach-strip { visibility:hidden; }
+  .count-stage.theme-star { background:radial-gradient(circle at 80% 10%,#E9B84B44,transparent 25%),radial-gradient(2px 2px at 22% 18%,#FFF8EB 90%,transparent),linear-gradient(#4A7378,#294E59); }
+  .animal-stage,.cmd-stage { box-shadow:inset 0 0 0 4px #FFFCF4,var(--shadow); }
+  @media(min-width:600px) {
+    .home-hero { min-height:200px; grid-template-columns:1fr 45%; }
+    .menu { grid-template-columns:repeat(3,minmax(0,1fr)); }
+    .menu-card:last-child { grid-column:span 2; }
+    .menu-scene { height:115px; }
+    .animal-btn { max-width:150px; min-height:130px; }
+    .animal-emoji { width:96px; height:96px; }
+    .animal-stage { gap:20px; min-height:360px; }
+    .cmd-item { width:calc((100% - 36px)/4); }
+    .stamp-grid { grid-template-columns:repeat(8,minmax(0,1fr)); }
+  }
+  @media(min-width:760px) and (max-height:520px) {
+    header { padding-top:4px; padding-bottom:4px; min-height:52px; }
+    .collection-return { position:absolute; left:12px; top:4px; margin:0; }
+    #title-mini { display:none; }
+    #screen-home { display:none; }
+    #screen-home.active { display:grid; grid-template-columns:240px minmax(0,1fr); grid-template-rows:auto auto; gap:10px 18px; padding-bottom:10px; }
+    .home-hero { grid-column:1; grid-row:1; display:block; min-height:0; padding:6px 0; }
+    .big-title { font-size:28px; }
+    .subtitle { font-size:12px; }
+    #hero-art { height:80px; }
+    #hero-art svg { height:90px; }
+    .section-label { display:none; }
+    .menu { grid-column:2; grid-row:1/3; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+    .menu-card { display:grid; grid-template-columns:64px 1fr; grid-template-rows:1fr 1fr; min-height:77px; padding:0; gap:0; border-radius:16px; }
+    .menu-card .menu-scene { grid-row:1/3; height:100%; margin:0; border:0; }
+    .menu-card .menu-name { font-size:16px; align-self:end; padding:0 8px; }
+    .menu-card .menu-desc { font-size:12px; align-self:start; padding:0 8px; }
+    .menu-card:last-child { grid-column:1/-1; grid-template-columns:100px 1fr; min-height:70px; }
+    .garden-summary { grid-column:1; grid-row:2; margin:0; padding:8px; gap:6px; }
+    .garden-seal { width:36px; height:36px; font-size:20px; }
+    .garden-summary strong { font-size:12px; }
+    .garden-summary small { font-size:12px; }
+  }
+  @media(max-width:350px) {
+    header { padding:8px 10px; }
+    .home-hero { grid-template-columns:1fr 34%; min-height:130px; }
+    .big-title { font-size:25px; letter-spacing:0; }
+    .subtitle { font-size:12px; }
+    .menu-desc { font-size:12px; }
+    .animal-emoji { width:72px; height:72px; }
+    .animal-btn { min-height:101px; }
+    .ten-frame { gap:8px; }
+    .count-stage.add-mode { padding:14px 8px; }
+    .pattern-slot { font-size:24px; }
+  }
+  @media(prefers-reduced-motion:reduce) {
+    *,*::before,*::after { animation:none!important; transition:none!important; scroll-behavior:auto!important; }
+    .tap-spark,.fly-star,.confetti { display:none!important; }
+  }
+
+  /* 第二轮实图校准。工具栏一行，学习区拥有真实状态与独立滚动区域。 */
+  body.game-screen { height:100svh; min-height:0; overflow:hidden; }
+  header.game-bar { flex:none; min-height:64px; }
+  .game-area { width:100%; max-width:1000px; margin:0 auto; display:flex; flex-direction:column; flex:1; min-height:0; overflow-y:auto; overflow-x:clip; padding-bottom:env(safe-area-inset-bottom); }
+  .game-area main { flex:1; min-height:0; }
+  .collection-return { margin:0; padding:8px; min-width:64px; flex:none; justify-content:center; font-size:13px; border-radius:15px; }
+  body[data-state=playing] #collection-return,body[data-state=paused] #collection-return { display:none; }
+  #star-box { min-width:54px; width:54px; padding:7px 4px; flex:none; font-size:15px; }
+  #star-count { max-width:29px; }
+  .icon-btn { display:inline-grid; place-items:center; }
+  .header-side { gap:8px; }
+  #title-mini { display:none; }
+  .home-hero { min-height:140px; padding:8px 0; }
+  #hero-art { transform:none; overflow:hidden; border-radius:40% 42% 36% 46%; box-shadow:inset 0 0 0 1px #284B400A; }
+  #hero-art svg { display:block; }
+  .subtitle { font-size:13px; line-height:1.6; }
+  .menu-card { animation:screen-in .22s ease-out both; }
+  .menu-card:nth-child(n) { animation-delay:0s; }
+  .menu-scene { background:none!important; }
+  .menu-scene svg { display:block; object-fit:cover; }
+  .menu-desc { font-size:12px; line-height:1.6; }
+  .menu-scene { height:80px; }
+  .menu-card { padding-bottom:10px; }
+  .menu-card:last-child { padding:0; min-height:84px; }
+  #screen-home { padding-bottom:16px; }
+  .garden-summary { margin-top:12px; padding:10px 12px; min-height:62px; }
+  .garden-summary small { white-space:nowrap; }
+  .garden-summary .journal-count { font-size:13px; }
+  .garden-seal { width:40px; height:40px; font-size:24px; }
+  .coach-strip { flex:none; min-height:66px; max-height:90px; margin-bottom:10px; padding:9px 12px; }
+  body[data-state=playing] .coach-strip:has(.bubble.hidden) { display:flex; }
+  .bubble { line-height:1.6; max-height:68px; scrollbar-width:thin; }
+  .bubble.hide { animation:none; }
+  .animal-stage { min-height:270px; max-height:480px; isolation:isolate; padding:22px 10px; row-gap:18px; align-content:space-evenly; }
+  .animal-stage::before { content:''; position:absolute; inset:4px; border-radius:20px; background-image:var(--habitat-art); background-size:100% 100%; z-index:-1; pointer-events:none; }
+  .animal-btn { z-index:1; min-height:114px; }
+  .animal-emoji { width:88px; height:88px; background:linear-gradient(140deg,#FFFEF8,#F4F2E4); border:1px solid #FFFEF8; }
+  .animal-emoji svg { width:100%; height:100%; }
+  .stage-decor { display:none; }
+  .animal-name { background:#FFF9EDEE; padding:4px 10px; }
+  .count-stage { width:100%; max-width:720px; max-height:490px; align-self:center; }
+  .count-item { border-radius:18px; background:linear-gradient(140deg,#FFFEF8,#F1ECD9); box-shadow:1px 4px 0 #243F431A,1px 6px 12px #243F4312; border:1px solid #FFFEF8; }
+  .count-item.counted { background:#E9EFCB; border:2px solid #9FB16E; filter:none; }
+  .count-stage.theme-star { background:radial-gradient(circle at 80% 18%,#F6DD9440,transparent 22%),radial-gradient(1px 1px at 12% 15%,#EAF1DD 95%,transparent),radial-gradient(2px 2px at 82% 75%,#EAF1DD 90%,transparent),linear-gradient(150deg,#466D71,#294E59); }
+  .count-stage.theme-fish { background:radial-gradient(ellipse at 20% 110%,#709F8D 0 20%,transparent 20.5%),radial-gradient(ellipse at 80% 112%,#ADC6A0 0 28%,transparent 28.5%),linear-gradient(#E0F0EA,#B6D9D1); }
+  .scene-actions { flex:none; padding-top:12px; }
+  .screen { flex:none; }
+  .screen.active { flex:1; }
+  .voice-panel { max-height:calc(100svh - 24px); }
+  .voice-panel.game-pause { border:1px solid #BAC9AD; background:linear-gradient(145deg,#FFFCEF,#EFF2DC); }
+  @media(min-width:600px) {
+    .home-hero { min-height:156px; grid-template-columns:1fr 38%; }
+    #hero-art { max-width:255px; justify-self:end; }
+    #hero-art svg { max-height:154px; }
+    .menu-scene { height:98px; }
+    .menu-card { padding-bottom:10px; }
+    .animal-stage { min-height:310px; }
+    .count-stage { max-height:500px; }
+    .count-item { width:56px; height:56px; font-size:42px; }
+  }
+  @media(max-height:640px) and (max-width:759px) {
+    header.game-bar { min-height:56px; padding:6px 12px; }
+    .home-hero { min-height:88px; grid-template-columns:1fr 92px; padding:3px 0; }
+    .eyebrow { font-size:12px; margin-bottom:4px; letter-spacing:1px; }
+    .big-title { font-size:25px; }
+    .subtitle { margin:4px 0 0; font-size:12px; }
+    .subtitle br { display:none; }
+    #hero-art { max-height:82px; }
+    #hero-art svg { max-height:82px; }
+    .section-label { display:none; }
+    .menu { grid-template-columns:1fr; gap:6px; }
+    .menu-card,.menu-card:last-child { grid-column:auto; display:grid; grid-template-columns:76px minmax(0,1fr); grid-template-rows:1fr 1fr; gap:0; padding:0; min-height:62px; height:62px; border-radius:17px; border-bottom-width:3px; }
+    .menu-card .menu-scene { grid-row:1/3; grid-column:1; height:100%; margin:0; border:0; }
+    .menu-card .menu-name,.menu-card:last-child .menu-name { grid-column:2; align-self:end; justify-self:start; font-size:17px; padding-left:14px; letter-spacing:0; }
+    .menu-card .menu-desc,.menu-card:last-child .menu-desc { grid-column:2; align-self:start; justify-self:start; font-size:12px; padding:0 14px; white-space:nowrap; }
+    .menu-card::after { right:10px; top:8px; font-size:14px; }
+    .garden-summary { margin-top:8px; min-height:50px; padding:6px 10px; gap:8px; }
+    .garden-summary strong { font-size:13px; }
+    .garden-summary small { font-size:12px; }
+    .garden-seal { width:34px; height:34px; font-size:22px; }
+    #screen-home { padding-bottom:8px; }
+    .coach-strip { min-height:54px; padding:6px 10px; margin-bottom:8px; }
+    .coach-portrait { width:34px; height:34px; }
+    .bubble { font-size:13px; max-height:44px; }
+    .animal-stage { min-height:220px; padding:14px 8px; row-gap:8px; }
+    .animal-btn { min-height:90px; }
+    .animal-emoji { width:62px; height:62px; }
+    .animal-name { font-size:12px; padding:3px 8px; }
+    .habitat-tabs { padding-bottom:8px; }
+    .scene-actions { padding-top:8px; }
+    .count-stage { min-height:210px; }
+  }
+  @media(max-height:500px) and (max-width:759px) {
+    .home-hero { min-height:70px; }
+    .eyebrow { display:none; }
+    #hero-art,#hero-art svg { max-height:72px; }
+    .big-title { font-size:24px; }
+    .eyebrow { margin-bottom:2px; }
+    .subtitle { margin-top:2px; }
+    .menu-card,.menu-card:last-child { min-height:48px; height:48px; grid-template-columns:66px minmax(0,1fr); border-radius:14px; }
+    .menu-card .menu-name,.menu-card:last-child .menu-name { font-size:16px; }
+    .menu-card .menu-desc,.menu-card:last-child .menu-desc { font-size:12px; }
+    .garden-summary { min-height:44px; padding:5px 10px; }
+    .garden-seal { width:30px; height:30px; font-size:20px; }
+  }
+  @media(min-width:760px) and (max-height:520px) {
+    .collection-return { position:static; }
+    header.game-bar { min-height:52px; padding:4px 12px; }
+    .home-hero { min-height:0; display:block; }
+    #hero-art { height:85px; margin-top:8px; max-width:140px; }
+    #hero-art svg { height:85px; }
+    .menu-scene { height:100%; }
+    .menu-card { padding-bottom:0; }
+    .garden-summary { margin-top:0; padding:8px; }
+    .garden-summary small { white-space:normal; }
+  }
+
+
+  /* 气泡内的字形不能贴住滚动裁剪边缘。此处仅调整文字列，不改获认可的卡片布局。 */
+  .coach-strip { display:grid; grid-template-columns:42px minmax(0,1fr); align-items:start; }
+  body[data-state=playing] .coach-strip:has(.bubble.hidden) { display:grid; }
+  .bubble { min-width:0; width:100%; padding-inline:4px; box-sizing:border-box; text-align:left; text-indent:0; overflow-x:hidden; overflow-y:auto; }
+  .learning-art { display:inline-block; width:1em; height:1em; vertical-align:middle; overflow:visible; pointer-events:none; flex:none; }
+  .count-item > .learning-art,.add-item > .learning-art,.pattern-slot > .learning-art { width:100%; height:100%; }
+  .cmd-emoji > .learning-art,.judge-figure > .learning-art,.lit-figure > .learning-art { display:block; margin:auto; }
+  @media(max-height:640px) and (max-width:759px) { .coach-strip { grid-template-columns:34px minmax(0,1fr); } }
+
+
+  /* 暂停面板在游戏滚动区之外，不能随游戏的入场动画一起冻结。 */
+  #pause-overlay { position:fixed; inset:0; z-index:110; background:rgba(40,75,64,.48); }
+  #pause-panel { position:fixed; z-index:111; left:50%; top:50%; transform:translate(-50%,-50%); }
+  #pause-panel:not(.hidden) { animation:none !important; opacity:1; visibility:visible; pointer-events:auto; }
+  #pause-overlay:not(.hidden) { animation:none !important; opacity:1; visibility:visible; pointer-events:auto; }
+  .garden-ground { flex:1 0 32px; min-height:32px; margin-top:12px; border-radius:18px; background:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%201000%20100%22%20preserveAspectRatio%3D%22none%22%3E%3Cpath%20d%3D%22M0%2060Q140%205%20320%2057T670%2053T1000%2050V100H0Z%22%20fill%3D%22%23E3EACF%22%2F%3E%3Cpath%20d%3D%22M0%2082Q210%2039%20400%2083T760%2077T1000%2080V100H0Z%22%20fill%3D%22%23CFDDBD%22%2F%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%23809E73%22%20stroke-width%3D%223%22%20stroke-linecap%3D%22round%22%3E%3Cpath%20d%3D%22M68%2093V63m0%2015-11-12m11%205%2011-17M199%2096V75m0%209-9-9m9%205%208-14M781%2096V62m0%2018-12-13m12%204%209-16M947%2095V70m0%2010-9-10m9%207%2010-15%22%2F%3E%3C%2Fg%3E%3Cg%20fill%3D%22%23E0B761%22%3E%3Ccircle%20cx%3D%2279%22%20cy%3D%2253%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22790%22%20cy%3D%2255%22%20r%3D%224%22%2F%3E%3Ccircle%20cx%3D%22335%22%20cy%3D%2286%22%20r%3D%223%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E") center bottom / 100% 100% no-repeat; pointer-events:none; }
+  #screen-animals .animal-stage { flex-grow:8; }
+  .cmd-emoji.big, .cmd-emoji.small { display:flex; width:100%; height:80px; min-height:80px; align-items:center; justify-content:center; line-height:1; }
+  @media(max-height:640px) { .garden-ground { display:none; } }
+  @media(max-height:640px) and (max-width:759px) {
+    .home-hero { grid-template-columns:minmax(0,1fr) 92px; }
+    .hero-copy { min-width:0; }
+    .subtitle { max-width:100%; }
+    .subtitle br { display:block; }
+  }
+
+
+  /* 界面小图形（内联 SVG，替代系统 emoji） */
+  .ui-g { display:inline-block; width:1em; height:1em; vertical-align:-.14em; flex:none; overflow:visible; }
+  .action-btn,.habitat-tab,.voice-preview button { display:inline-flex; align-items:center; justify-content:center; gap:.4em; }
+  .small-btn { display:inline-grid; place-items:center; }
+  .small-btn .ui-g { width:22px; height:22px; vertical-align:0; }
+  .seek-bar { align-items:center; }
+  .seek-bar > .ui-g { width:22px; height:22px; vertical-align:0; }
+  .voice-panel-title,.medal-title { display:flex; align-items:center; justify-content:center; gap:8px; }
+  .voice-panel-title .ui-g,.medal-title .ui-g { width:1.15em; height:1.15em; vertical-align:0; }
+  #title-mini .ui-g { vertical-align:-.2em; margin-right:4px; }
+  #star-box .ui-g { width:17px; height:17px; vertical-align:-3px; }
+  .judge-btn .judge-icon { display:grid; place-items:center; }
+  .judge-btn .judge-icon .ui-g { width:1em; height:1em; vertical-align:0; }
+  .confetti .ui-g,.tap-spark .ui-g,.fly-star .ui-g { vertical-align:top; }
+  .medal-emoji { display:grid; place-items:center; }
+  .parent-row .ui-g { width:1.1em; height:1.1em; vertical-align:-.2em; margin-right:2px; }
+  .stage-decor .ui-g { width:1em; height:1em; vertical-align:top; }
+  .habitat-tab .ui-g { width:1.25em; height:1.25em; }
+
+  /* 桌面（宽 ≥1000、高 ≥620）：版心加宽，学习内页的舞台和答案卡按窗口高度放大，不留大块空带 */
+  @media (min-width:1000px) and (min-height:620px) {
+    header.game-bar,.game-area,main { max-width:1160px; }
+    .coach-strip { max-width:1136px; }
+    .collection-return { font-size:14px; }
+    .subtitle { font-size:15px; }
+    .menu-desc { font-size:13px; }
+    .garden-summary .journal-count { font-size:14px; }
+    .habitat-tab { font-size:17px; min-height:52px; gap:8px; }
+    .habitat-tab .ui-g { width:1.3em; height:1.3em; }
+    .seek-bar { font-size:16px; }
+    .animal-stage { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); justify-items:center; align-content:center; gap:16px 24px; padding:20px 40px; }
+    .animal-stage::before { background-image:var(--habitat-art-wide); }
+    .animal-btn { width:auto; max-width:none; min-height:0; }
+    .animal-emoji { width:clamp(88px,14.5vh,150px); height:clamp(88px,14.5vh,150px); }
+    .animal-name { font-size:16px; padding:4px 14px; }
+    .count-display,.cmd-text { font-size:24px; padding:12px 20px; }
+    .small-btn { width:52px; min-width:52px; height:52px; }
+    .cmd-header,.count-header { padding-bottom:12px; }
+    #screen-commands,#screen-literacy,#screen-logic { padding-bottom:12px; }
+    #screen-commands .scene-actions,#screen-literacy .scene-actions,#screen-logic .scene-actions { display:flex; min-height:52px; padding-top:4px; }
+    .cmd-stage { --card-h:clamp(240px,46vh,420px); min-height:0; padding:28px 36px; gap:24px 28px; }
+    #lit-stage,#logic-stage:has(.pattern-row) { --card-h:clamp(200px,30vh,300px); }
+    .cmd-item { width:calc((100% - 84px)/4); max-width:none; min-width:0; min-height:var(--card-h); padding:16px 12px; gap:12px; border-radius:26px; justify-content:center; }
+    #cmd-stage:has(.cmd-item:nth-child(2):last-child) .cmd-item { width:min(380px,calc((100% - 28px)/2)); }
+    .cmd-emoji { font-size:min(calc(var(--card-h)*.56),200px); }
+    .cmd-emoji.big { font-size:min(calc(var(--card-h)*.7),250px); }
+    .cmd-emoji.small { font-size:min(calc(var(--card-h)*.3),110px); }
+    .cmd-emoji.big,.cmd-emoji.small { height:min(calc(var(--card-h)*.7),250px); min-height:0; }
+    .cmd-emoji.lit-choice { font-size:calc(var(--card-h)*.42); }
+    .cmd-label { font-size:22px; line-height:1.3; }
+    .judge-figure { font-size:min(calc(var(--card-h)*.6),240px); }
+    .judge-btn { width:calc((100% - 28px)/2); max-width:340px; height:calc(var(--card-h)*.34); font-size:30px; }
+    .judge-btn .judge-icon { font-size:52px; }
+    .lit-card { gap:6px; padding-bottom:0; }
+    .lit-pinyin { font-size:24px; }
+    .lit-char { font-size:calc(var(--card-h)*.42); padding:4px 44px; border-radius:28px; }
+    .lit-figure { font-size:calc(var(--card-h)*.62); }
+    .pattern-row { gap:14px; padding-bottom:12px; }
+    .pattern-slot { width:clamp(72px,12vh,104px); max-width:none; height:auto; border-radius:18px; font-size:44px; }
+    .pattern-q { font-size:44px; }
+    /* 数学岛：舞台铺满版心，物品、算式和数字键按桌面放大 */
+    #screen-medals { justify-content:center; padding-bottom:0; }
+    .medal-title { font-size:38px; margin-top:0; }
+    .medal-sub { font-size:17px; margin-bottom:26px; }
+    .medal-grid { gap:32px; padding:10px 0 20px; }
+    .medal-card { width:340px; max-width:340px; padding:76px 22px; gap:14px; }
+    .medal-emoji { font-size:176px; }
+    .medal-name { font-size:32px; }
+    .medal-tier { font-size:17px; padding:4px 18px; }
+    .medal-progress { font-size:15px; }
+    .count-stage { max-width:none; align-self:stretch; max-height:none; }
+    .voice-panel { max-height:calc(100svh - 56px); overflow-y:auto; }
+    .count-stage.add-mode { flex:0 0 auto; height:var(--add-h,auto); min-height:0; }
+    .count-item { width:84px; height:84px; font-size:60px; border-radius:22px; }
+    .count-stage:not(.compare-mode):not(.add-mode)[data-cols="2"] .count-item { width:190px; height:190px; font-size:130px; border-radius:40px; }
+    .count-stage:not(.compare-mode):not(.add-mode)[data-cols="3"] .count-item { width:150px; height:150px; font-size:104px; border-radius:34px; }
+    .count-stage:not(.compare-mode):not(.add-mode)[data-cols="4"] .count-item { width:120px; height:120px; font-size:84px; border-radius:28px; }
+    .count-badge { width:32px; height:32px; font-size:18px; top:-10px; right:-6px; }
+    .compare-side { font-size:92px; gap:10px; }
+    .count-stage.add-mode > * { zoom:var(--add-zoom,3); }
+    .count-stage.add-mode:has(.ten-frame) > * { zoom:var(--add-zoom,2.1); }
+    .count-choices { gap:18px; padding-top:12px; }
+    .num-btn { width:100px; height:88px; font-size:44px; border-radius:22px; }
+  }
 </style>
 </head>
 <body data-collection="true">
 
-<a id="collection-return" class="collection-return hidden" href="../">‹ 返回小游戏合集</a>
-
-<header>
-  <button id="btn-home" class="icon-btn hidden" aria-label="回到首页">🏠</button>
-  <div id="title-mini">🌞 宝宝益智乐园</div>
+<div class="game-area" data-area>
+<header class="game-bar">
+<a id="collection-return" class="collection-return game-bar__back hidden" href="../">‹ 合集</a>
+  <button id="btn-home" class="icon-btn hidden" aria-label="回到首页"></button>
+  <div id="title-mini" data-glyph="sun">宝宝益智乐园</div>
   <div class="header-side">
-    <button id="btn-medals" class="icon-btn" aria-label="勋章墙">🏅</button>
-    <button id="btn-parent" class="icon-btn" aria-label="家长看板">📊</button>
-    <button id="btn-voice" class="icon-btn" aria-label="选择语音">🔈</button>
-    <div id="star-box">⭐ <span id="star-count">0</span></div>
+    <button id="btn-medals" class="icon-btn" aria-label="勋章墙"></button>
+    <button id="btn-pause" class="icon-btn game-bar__pause hidden" data-bar-pause aria-label="暂停学习">Ⅱ</button>
+    <button id="btn-parent" class="icon-btn" aria-label="家长看板"></button>
+    <button id="btn-voice" class="icon-btn" aria-label="选择语音"></button>
+    <div id="star-box"><span data-glyph="star"></span> <span id="star-count" data-score>0</span></div>
   </div>
 </header>
 
+<div class="coach-strip"><span id="coach-art" class="coach-portrait" aria-hidden="true"></span><div id="bubble" class="bubble hidden" role="status" aria-live="polite"></div></div>
 <main>
   <!-- 首页 -->
   <section id="screen-home" class="screen active">
-    <h1 class="big-title" aria-label="宝宝益智乐园"><span>宝</span><span>宝</span><span>益</span><span>智</span><span>乐</span><span>园</span></h1>
-    <p class="subtitle">点一点，听一听，一起玩吧！</p>
+    <div class="home-hero"><div class="hero-copy"><p class="eyebrow">把好奇心装进口袋</p><h1 class="big-title" aria-label="宝宝益智乐园"><span>宝</span><span>宝</span><span>益</span><span>智</span><span>乐</span><span>园</span></h1>
+    <p class="subtitle">点一点，听一听。<br>和小狐狸一起发现世界。</p></div><div id="hero-art" aria-hidden="true"></div></div><div class="section-label">今天，想去哪里</div>
     <div class="menu">
       <button class="menu-card" data-scene="animals">
-        <span class="menu-scene"><span class="menu-emoji">🦁</span></span>
+        <span class="menu-scene"></span>
         <span class="menu-name">动物乐园</span>
-        <span class="menu-desc">认识小动物 · 找一找</span>
+        <span class="menu-desc">24位朋友，四个家园</span>
       </button>
       <button class="menu-card" data-scene="counting">
-        <span class="menu-scene"><span class="menu-emoji">⭐</span></span>
+        <span class="menu-scene"></span>
         <span class="menu-name">数学岛</span>
-        <span class="menu-desc">数一数 · 比多少 · 小加法</span>
+        <span class="menu-desc">点数、比较和加减</span>
       </button>
       <button class="menu-card" data-scene="commands">
-        <span class="menu-scene"><span class="menu-emoji">👂</span></span>
+        <span class="menu-scene"></span>
         <span class="menu-name">听指令</span>
-        <span class="menu-desc">听一听 · 点一点 · 对不对</span>
+        <span class="menu-desc">听线索，练习认真观察</span>
       </button>
       <button class="menu-card" data-scene="literacy">
-        <span class="menu-scene"><span class="menu-emoji">📖</span></span>
+        <span class="menu-scene"></span>
         <span class="menu-name">识字乐园</span>
-        <span class="menu-desc">认字宝宝 · 看图选字</span>
+        <span class="menu-desc">64个字词，看图读一读</span>
       </button>
       <button class="menu-card" data-scene="logic">
-        <span class="menu-scene"><span class="menu-emoji">❄️</span></span>
+        <span class="menu-scene"></span>
         <span class="menu-name">魔法逻辑</span>
-        <span class="menu-desc">找规律 · 找不同</span>
+        <span class="menu-desc">接着排，找出不同类</span>
       </button>
     </div>
+    <button id="btn-journal" class="garden-summary"><span class="garden-seal" aria-hidden="true">❧</span><span><strong>我的花园手册</strong><small id="garden-next">每三个发现，点亮一枚足迹</small></span><span id="garden-count" class="journal-count">0 / 24 ↗</span></button>
+    <div class="garden-ground" aria-hidden="true"></div>
   </section>
 
   <!-- 动物乐园 -->
   <section id="screen-animals" class="screen">
     <div class="habitat-tabs" id="habitat-tabs"></div>
     <div id="seek-bar" class="seek-bar hidden">
-      <span>🔍</span><span id="seek-text"></span>
-      <button class="small-btn" id="btn-seek-repeat" aria-label="再听一遍">🔊</button>
-      <button class="small-btn" id="btn-seek-cancel" aria-label="退出找一找">✖️</button>
+      <span data-glyph="search"></span><span id="seek-text"></span>
+      <button class="small-btn" id="btn-seek-repeat" aria-label="再听一遍" data-glyph="speaker"></button>
+      <button class="small-btn" id="btn-seek-cancel" aria-label="退出找一找" data-glyph="close"></button>
     </div>
     <div id="animal-stage" class="animal-stage"></div>
     <div class="scene-actions">
-      <button id="btn-seek" class="action-btn">🔍 找一找</button>
+      <button id="btn-seek" class="action-btn" data-glyph="search">找一找</button>
     </div>
+    <div class="garden-ground" aria-hidden="true"></div>
   </section>
 
   <!-- 数一数 -->
   <section id="screen-counting" class="screen">
     <div class="count-header">
       <div id="count-display" class="count-display"></div>
-      <button class="small-btn" id="btn-count-repeat" aria-label="再听一遍">🔊</button>
+      <button class="small-btn" id="btn-count-repeat" aria-label="再听一遍" data-glyph="speaker"></button>
     </div>
     <div id="count-stage" class="count-stage"></div>
     <div id="count-choices" class="count-choices hidden"></div>
     <div class="scene-actions">
-      <button id="btn-count-next" class="action-btn hidden">🔄 再来一次</button>
+      <button id="btn-count-next" class="action-btn hidden" data-glyph="again">再来一次</button>
     </div>
   </section>
 
@@ -979,11 +1412,11 @@
   <section id="screen-commands" class="screen">
     <div class="cmd-header">
       <div id="cmd-text" class="cmd-text"></div>
-      <button class="small-btn" id="btn-cmd-repeat" aria-label="再听一遍">🔊</button>
+      <button class="small-btn" id="btn-cmd-repeat" aria-label="再听一遍" data-glyph="speaker"></button>
     </div>
     <div id="cmd-stage" class="cmd-stage"></div>
     <div class="scene-actions">
-      <button id="btn-cmd-next" class="action-btn hidden">➡️ 下一题</button>
+      <button id="btn-cmd-next" class="action-btn hidden" data-glyph="next">下一题</button>
     </div>
   </section>
 
@@ -991,11 +1424,11 @@
   <section id="screen-literacy" class="screen">
     <div class="cmd-header">
       <div id="lit-text" class="cmd-text"></div>
-      <button class="small-btn" id="btn-lit-repeat" aria-label="再听一遍">🔊</button>
+      <button class="small-btn" id="btn-lit-repeat" aria-label="再听一遍" data-glyph="speaker"></button>
     </div>
     <div id="lit-stage" class="cmd-stage"></div>
     <div class="scene-actions">
-      <button id="btn-lit-next" class="action-btn hidden">➡️ 下一题</button>
+      <button id="btn-lit-next" class="action-btn hidden" data-glyph="next">下一题</button>
     </div>
   </section>
 
@@ -1003,40 +1436,42 @@
   <section id="screen-logic" class="screen">
     <div class="cmd-header">
       <div id="logic-text" class="cmd-text"></div>
-      <button class="small-btn" id="btn-logic-repeat" aria-label="再听一遍">🔊</button>
+      <button class="small-btn" id="btn-logic-repeat" aria-label="再听一遍" data-glyph="speaker"></button>
     </div>
     <div id="logic-stage" class="cmd-stage"></div>
     <div class="scene-actions">
-      <button id="btn-logic-next" class="action-btn hidden">➡️ 下一题</button>
+      <button id="btn-logic-next" class="action-btn hidden" data-glyph="next">下一题</button>
     </div>
   </section>
 
   <!-- 勋章墙 -->
   <section id="screen-medals" class="screen">
-    <h2 class="medal-title">🏅 我的勋章墙</h2>
+    <h2 class="medal-title" data-glyph="medal">我的勋章墙</h2>
     <p class="medal-sub">答对题目就能赢得勋章，铜牌、银牌、金牌等你来拿！</p>
     <div class="medal-grid" id="medal-grid"></div>
   </section>
+  <section id="screen-journal" class="screen"><h2 class="journal-heading">我的花园手册</h2><p class="journal-intro">把今天的小发现，装进口袋。答对新题，慢慢点亮花园里的足迹。</p><div id="journal-pages"></div><button id="btn-journal-home" class="action-btn">继续探索</button></section>
 </main>
+</div>
 
-<div id="bubble" class="bubble hidden"></div>
+<div id="pause-overlay" class="voice-overlay hidden"></div><div id="pause-panel" class="voice-panel hidden" role="dialog" aria-modal="true" aria-label="学习暂停"><div class="voice-panel-title">休息一小会儿</div><p class="voice-panel-sub">小狐狸会在这里等你。</p><div class="pause-actions"><button id="btn-resume" class="action-btn" data-resume>继续学习</button><button id="btn-restart" class="small-btn" data-restart style="width:100%">重新开始这个模块</button><button id="btn-pause-home" class="small-btn" data-exit style="width:100%">回到花园</button></div></div>
 <div id="voice-overlay" class="voice-overlay hidden"></div>
 <div id="parent-overlay" class="voice-overlay hidden"></div>
 <div id="parent-panel" class="voice-panel hidden" role="dialog" aria-label="家长看板">
-  <div class="voice-panel-title">📊 家长看板</div>
+  <div class="voice-panel-title" data-glyph="chart">家长看板</div>
   <div class="voice-panel-sub">各模块难度会按最近正确率自动升降（数学岛最高 L8）</div>
   <div id="parent-list"></div>
   <button id="btn-parent-reset" class="parent-reset">清空记录和星星</button>
   <button id="btn-parent-close" class="action-btn">知道啦</button>
 </div>
 <div id="voice-panel" class="voice-panel hidden" role="dialog" aria-label="选择语音">
-  <div class="voice-panel-title">🔈 选个好听的声音</div>
+  <div class="voice-panel-title" data-glyph="voice">选个好听的声音</div>
   <div class="voice-panel-sub">点击音色，听听哪个更喜欢</div>
   <div class="voice-controls">
     <label class="voice-rate-label" for="voice-rate">朗读速度 <output id="voice-rate-value" for="voice-rate">0.95×</output></label>
     <input id="voice-rate" type="range" min="0.75" max="1.25" step="0.05" value="0.95" aria-label="朗读速度">
     <div class="voice-presets"><button data-voice-rate="0.8">慢慢听</button><button data-voice-rate="0.95">自然说</button><button data-voice-rate="1.1">轻快读</button></div>
-    <div class="voice-preview"><button id="btn-voice-preview" aria-label="试听当前声音">▶ 试听</button><button id="btn-voice-stop">■ 停止试听</button></div>
+    <div class="voice-preview"><button id="btn-voice-preview" aria-label="试听当前声音" data-glyph="play">试听</button><button id="btn-voice-stop">■ 停止试听</button></div>
     <p id="voice-status" role="status" aria-live="polite"></p>
   </div>
   <div id="voice-list"></div>
@@ -1198,16 +1633,10 @@ function showBubble(text) {
   bubbleTimer = setTimeout(hideBubble, Speech.duration(text));
 }
 function hideBubble() {
-  const el = $('#bubble');
   if (bubbleTimer) { clearTimeout(bubbleTimer); bubbleTimer = null; }
-  if (el.classList.contains('hidden') || el.classList.contains('hide')) return;
-  /* 轻轻下沉淡出后再隐藏，与入场对称 */
-  el.classList.add('hide');
-  bubbleOutTimer = setTimeout(() => {
-    el.classList.add('hidden');
-    el.classList.remove('hide');
-    bubbleOutTimer = null;
-  }, 220);
+  if (bubbleOutTimer) { clearTimeout(bubbleOutTimer); bubbleOutTimer = null; }
+  // 文字是无声游玩的同等提示，语音结束后保留，换模块时由下一句更新。
+  $('#bubble').classList.remove('hide');
 }
 
 /* 保留连续语句的语境，让音色自行处理停顿。较长介绍按完整句分段。 */
@@ -1371,9 +1800,9 @@ const Progress = {
 
 /* ================= 勋章体系（孩子喜欢的英雄原型主题，不使用版权素材） ================= */
 const MEDALS = {
-  math:     { name: '光之勇士', emoji: '⚡', desc: '数学岛' },
-  literacy: { name: '小神童',   emoji: '🔥', desc: '识字乐园' },
-  logic:    { name: '冰雪魔法', emoji: '❄️', desc: '魔法逻辑' },
+  math:     { name: '光之勇士', glyph: 'bolt',  desc: '数学岛' },
+  literacy: { name: '小神童',   glyph: 'flame', desc: '识字乐园' },
+  logic:    { name: '冰雪魔法', glyph: 'snow',  desc: '魔法逻辑' },
 };
 const MEDAL_TIERS = [
   { need: 10, label: '铜牌' },
@@ -1415,7 +1844,7 @@ function renderMedalWall() {
     const next = MEDAL_TIERS[Math.min(tier, 2)];
     const progressText = tier >= 3 ? '已经是金牌啦！' : ('再答对 ' + Math.max(0, next.need - m.correct) + ' 题升' + next.label);
     card.innerHTML =
-      '<span class="medal-emoji">' + info.emoji + '</span>' +
+      '<span class="medal-emoji">' + glyph(info.glyph) + '</span>' +
       '<span class="medal-name">' + info.name + '</span>' +
       '<span class="medal-tier">' + (tier === 0 ? '还没获得' : MEDAL_TIERS[tier - 1].label) + '</span>' +
       '<span class="medal-progress">' + info.desc + ' · 已答对 ' + m.correct + ' 题</span>' +
@@ -1453,7 +1882,7 @@ function renderParentList() {
     const m = Progress.get(mod);
     const rate = m.total ? Math.round(m.correct / m.total * 100) : 0;
     const medal = (MEDALS[mod] && m.medal > 0)
-      ? (' · ' + MEDALS[mod].emoji + MEDAL_TIERS[m.medal - 1].label)
+      ? (' · ' + glyph(MEDALS[mod].glyph) + MEDAL_TIERS[m.medal - 1].label)
       : '';
     const row = document.createElement('div');
     row.className = 'parent-row';
@@ -1496,11 +1925,13 @@ function confetti() {
     if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   } catch (e) { /* 忽略 */ }
   const layer = $('#confetti-layer');
-  const emojis = ['🎉', '⭐', '🎈', '✨', '🌟', '🎊'];
+  const pieces = ['star', 'sparkle', 'balloon', 'ribbon', 'dot', 'star'];
+  const tints = ['#E9B84B', '#D77B63', '#6FA37E', '#6EA4B1', '#C18DB0', '#EFC96B'];
   for (let i = 0; i < 26; i++) {
     const s = document.createElement('span');
     s.className = 'confetti';
-    s.textContent = pick(emojis);
+    s.innerHTML = glyph(pick(pieces));
+    s.style.color = pick(tints);
     s.style.left = (Math.random() * 100) + 'vw';
     s.style.fontSize = (18 + Math.random() * 22) + 'px';
     s.style.animationDelay = (Math.random() * 0.4) + 's';
@@ -1511,11 +1942,12 @@ function confetti() {
 }
 /* 点击处星尘迸发 */
 function tapBurst(x, y) {
+  if (reducedMotion()) return;
   const layer = $('#confetti-layer');
   for (let i = 0; i < 6; i++) {
     const s = document.createElement('span');
     s.className = 'tap-spark';
-    s.textContent = i % 2 ? '✨' : '⭐';
+    s.innerHTML = glyph(i % 2 ? 'sparkle' : 'star');
     const angle = (i / 6) * Math.PI * 2 + Math.random() * 0.6;
     const dist = 22 + Math.random() * 22;
     s.style.left = x + 'px';
@@ -1529,10 +1961,11 @@ function tapBurst(x, y) {
 
 /* 星星从答对处飞进右上角计数框 */
 function flyStarTo(x, y) {
+  if (reducedMotion()) return;
   const box = $('#star-box').getBoundingClientRect();
   const s = document.createElement('span');
   s.className = 'fly-star';
-  s.textContent = '⭐';
+  s.innerHTML = glyph('star');
   s.style.left = x + 'px';
   s.style.top = y + 'px';
   s.style.setProperty('--tx', (box.left + box.width / 2 - x) + 'px');
@@ -1542,6 +1975,8 @@ function flyStarTo(x, y) {
 }
 
 function celebrate(fromEl) {
+  addStar();
+  renderGardenSummary();
   Sfx.cheer();
   confetti();
   /* 轻微震动反馈（支持的设备上，渐进增强） */
@@ -1554,14 +1989,13 @@ function celebrate(fromEl) {
     y = r.top + r.height / 2;
   }
   flyStarTo(x, y);
-  /* 星星抵达计数框时再入账，叮一声 */
-  setTimeout(() => { addStar(); Sfx.ding(); }, 650);
+  /* 星星已同步入账，动画只负责显示。 */
 }
 
 /* ================= 屏幕切换 ================= */
 /* 换题、数完出选项和划掉动作共用暂停规则，各自只保留一个待执行任务。 */
 function learningCanRun() {
-  return !Speech.suspended && !document.hidden
+  return !learningPaused && !Speech.suspended && !document.hidden
     && $('#voice-panel').classList.contains('hidden')
     && $('#parent-panel').classList.contains('hidden');
 }
@@ -1606,6 +2040,13 @@ function resumeLearningTimers() {
   for (const timer of [autoNextTimer, countChoicesTimer, crossTimer]) timer.resume();
 }
 function showScreen(id) {
+  activeScene = id;
+  document.body.dataset.scene = id;
+  document.body.dataset.state = ['home','medals','journal'].includes(id) ? 'menu' : 'playing';
+  const playing = document.body.dataset.state === 'playing';
+  $('#btn-pause').classList.toggle('hidden', !playing);
+  $('#btn-parent').classList.toggle('hidden', playing);
+  renderGardenSummary();
   clearAutoNext();
   clearCountChoicesTimer();
   clearCrossTimer();
@@ -1619,10 +2060,10 @@ function showScreen(id) {
 
 /* ================= 场景一：动物乐园 ================= */
 const HABITATS = [
-  { id: 'grass',  name: '草原', emoji: '🌾', decors: ['🌤️', '🌾', '🌼'] },
-  { id: 'forest', name: '森林', emoji: '🌳', decors: ['🌳', '🍄', '🌿'] },
-  { id: 'farm',   name: '农场', emoji: '🏡', decors: ['🏡', '🌻', '🚜'] },
-  { id: 'ocean',  name: '海洋', emoji: '🌊', decors: ['🌊', '🐚', '⛵'] },
+  { id: 'grass',  name: '草原', glyph: 'wheat', decors: ['cloud', 'wheat', 'flower'] },
+  { id: 'forest', name: '森林', glyph: 'tree',  decors: ['tree', 'mushroom', 'leaf'] },
+  { id: 'farm',   name: '农场', glyph: 'house', decors: ['house', 'flower', 'leaf'] },
+  { id: 'ocean',  name: '海洋', glyph: 'wave',  decors: ['wave', 'shell', 'boat'] },
 ];
 const ANIMALS = [
   { habitat: 'grass',  name: '狮子',   emoji: '🦁', intro: '你好呀！我是威风的狮子，嗷呜！我是草原之王，我生活在大草原上，我最喜欢和家人一起晒太阳、打盹儿。' },
@@ -1641,6 +2082,14 @@ const ANIMALS = [
   { habitat: 'ocean',  name: '鲸鱼',   emoji: '🐳', intro: '你好呀！我是鲸鱼，我是海洋里最大的动物，会喷出高高的水柱。我生活在深深的大海里，我最喜欢唱歌给朋友们听。' },
   { habitat: 'ocean',  name: '小螃蟹', emoji: '🦀', intro: '你好呀！我是小螃蟹，我有两只大钳子，走起路来横着走。我生活在海边的沙滩上，我最喜欢吹泡泡和挖沙子。' },
   { habitat: 'ocean',  name: '章鱼',   emoji: '🐙', intro: '你好呀！我是章鱼，我有八条腕足，还会变颜色躲猫猫。我生活在大海的礁石里，我最喜欢用长长的腕足抱住东西。' },
+  { habitat:'grass', name:'犀牛', emoji:'🦏', intro:'我是犀牛，鼻子上有角，皮肤厚厚的。我会用泥巴给身体降温。' },
+  { habitat:'grass', name:'河马', emoji:'🦛', intro:'我是河马，嘴巴大大的。我白天常在水里休息，傍晚出来吃草。' },
+  { habitat:'forest', name:'松鼠', emoji:'🐿️', intro:'我是松鼠，尾巴像把小伞。我爬树很灵巧，还会藏好种子。' },
+  { habitat:'forest', name:'棕熊', emoji:'🐻', intro:'我是棕熊，身体壮壮的。我会找果子吃，也会在河边捉鱼。' },
+  { habitat:'farm', name:'小羊', emoji:'🐑', intro:'我是小羊，咩咩咩。我有软软的羊毛，喜欢和伙伴一起吃草。' },
+  { habitat:'farm', name:'小鸭子', emoji:'🦆', intro:'我是小鸭子，嘎嘎嘎。我的脚趾之间有蹼，像小船桨，帮我划水。' },
+  { habitat:'ocean', name:'海龟', emoji:'🐢', intro:'我是海龟，背着结实的壳。我的鳍状肢像桨，带着我在海里游。' },
+  { habitat:'ocean', name:'海马', emoji:'🐴', intro:'我是海马，头的形状像小马。我会用尾巴卷住海草，慢慢等待食物。' },
 ];
 
 let currentHabitat = 'grass';
@@ -1657,7 +2106,7 @@ function renderHabitatTabs() {
   HABITATS.forEach(h => {
     const btn = document.createElement('button');
     btn.className = 'habitat-tab' + (h.id === currentHabitat ? ' active' : '');
-    btn.textContent = h.emoji + ' ' + h.name;
+    btn.innerHTML = glyph(h.glyph) + '<span>' + h.name + '</span>';
     btn.addEventListener('click', () => {
       if (currentHabitat === h.id) return;
       currentHabitat = h.id;
@@ -1676,6 +2125,8 @@ function renderAnimalStage() {
   const stage = $('#animal-stage');
   const habitat = HABITATS.find(h => h.id === currentHabitat);
   stage.className = 'animal-stage h-' + currentHabitat;
+  stage.style.setProperty('--habitat-art', 'url("data:image/svg+xml,' + encodeURIComponent(habitatArt(currentHabitat)) + '")');
+  stage.style.setProperty('--habitat-art-wide', 'url("data:image/svg+xml,' + encodeURIComponent(habitatArt(currentHabitat, true)) + '")');
   stage.innerHTML = '';
   /* 重播入场渐入，让切换栖息地有过渡感 */
   stage.style.animation = 'none';
@@ -1690,7 +2141,7 @@ function renderAnimalStage() {
   habitat.decors.forEach((d, i) => {
     const s = document.createElement('span');
     s.className = 'stage-decor';
-    s.textContent = d;
+    s.innerHTML = glyph(d);
     Object.assign(s.style, decorPos[i] || {});
     stage.appendChild(s);
   });
@@ -1701,7 +2152,8 @@ function renderAnimalStage() {
     btn.style.marginTop = ((i % 3) * 16) + 'px';
     const emoji = document.createElement('span');
     emoji.className = 'animal-emoji';
-    emoji.textContent = a.emoji;
+    emoji.innerHTML = animalArt(a.name);
+    emoji.setAttribute('aria-hidden', 'true');
     emoji.style.setProperty('--bob-delay', (i * 0.35) + 's');
     /* pop 播完移除 bounce，恢复 bob 漂浮 */
     emoji.addEventListener('animationend', (e) => {
@@ -1762,7 +2214,7 @@ function startSeek() {
   seekRecorded = false;
   $('#seek-text').textContent = '请找一找：' + seekTarget.name;
   $('#seek-bar').classList.remove('hidden');
-  $('#btn-seek').textContent = '🔁 换一只';
+  setGlyphLabel($('#btn-seek'), 'again', '换一只');
   Sfx.ding();
   speak('小朋友，请找一找，' + seekTarget.name + '在哪里呀？找到就点一点它！');
 }
@@ -1770,7 +2222,7 @@ function startSeek() {
 function endSeek() {
   seekTarget = null;
   $('#seek-bar').classList.add('hidden');
-  $('#btn-seek').textContent = '🔍 找一找';
+  setGlyphLabel($('#btn-seek'), 'search', '找一找');
 }
 
 function enterAnimals() {
@@ -1778,14 +2230,16 @@ function enterAnimals() {
   endSeek();
   renderHabitatTabs();
   renderAnimalStage();
-  speak('欢迎来到动物乐园！点一点小动物，听它们跟你打招呼吧！还可以点下面的按钮，玩找一找哦！');
+  speak('欢迎来到动物乐园。点点动物听介绍，也可以玩找一找。');
 }
 
 /* 动物偶尔"招手"摇摆：只在动物乐园可见时生效，让画面有生命感 */
+let wiggleTimer = null;
 function scheduleWiggle() {
-  setTimeout(() => {
+  if (wiggleTimer !== null) clearTimeout(wiggleTimer);
+  wiggleTimer = setTimeout(() => {
     const active = document.querySelector('.screen.active');
-    if (active && active.id === 'screen-animals' && document.visibilityState === 'visible') {
+    if (active && active.id === 'screen-animals' && learningCanRun() && !reducedMotion() && document.visibilityState === 'visible') {
       const btns = document.querySelectorAll('.animal-btn');
       if (btns.length) {
         const btn = btns[randInt(0, btns.length - 1)];
@@ -1795,7 +2249,8 @@ function scheduleWiggle() {
         }
       }
     }
-    scheduleWiggle();
+    wiggleTimer = null;
+    if (!Speech.suspended) scheduleWiggle();
   }, randInt(3500, 7000));
 }
 
@@ -1804,6 +2259,9 @@ const COUNT_THEMES = [
   { id: 'star',  itemEmoji: '⭐', itemName: '星星', unit: '颗', prompt: '数一数，天上有几颗星星呀？' },
   { id: 'apple', itemEmoji: '🍎', itemName: '苹果', unit: '个', prompt: '数一数，树上有几个苹果呀？' },
   { id: 'fish',  itemEmoji: '🐟', itemName: '小鱼', unit: '条', prompt: '数一数，水里有几条小鱼呀？' },
+  { id:'flower', itemEmoji:'🌼', itemName:'小花', unit:'朵', prompt:'数一数，花园里有几朵小花？' },
+  { id:'shell', itemEmoji:'🐚', itemName:'贝壳', unit:'枚', prompt:'数一数，沙滩上有几枚贝壳？' },
+  { id:'carrot', itemEmoji:'🥕', itemName:'胡萝卜', unit:'根', prompt:'数一数，篮子里有几根胡萝卜？' },
 ];
 let countTheme = null;
 let countTotal = 0;
@@ -1905,16 +2363,13 @@ function renderCountingRound(lv) {
   stage.className = 'count-stage theme-' + countTheme.id;
   stage.innerHTML = '';
 
-  /* 4 列 × 3 行网格中随机取格子，加抖动，避免重叠 */
-  const cells = shuffle(Array.from({ length: 12 }, (_, i) => i)).slice(0, countTotal);
-  cells.forEach(c => {
-    const col = c % 4;
-    const row = Math.floor(c / 4);
+  stage.dataset.cols = countTotal <= 4 ? 2 : countTotal <= 6 ? 3 : 4;
+  countPositions(countTotal).forEach(pos => {
     const btn = document.createElement('button');
     btn.className = 'count-item';
-    btn.textContent = countTheme.itemEmoji;
-    btn.style.left = (col * 22 + 12 + Math.random() * 7) + '%';
-    btn.style.top = (row * 26 + 16 + Math.random() * 8) + '%';
+    paintLearningArt(btn, countTheme.itemEmoji);
+    btn.style.left = pos.x + '%';
+    btn.style.top = pos.y + '%';
     btn.style.setProperty('--float-delay', (Math.random() * 1.6) + 's');
     btn.addEventListener('click', () => onCountTap(btn));
     stage.appendChild(btn);
@@ -1947,7 +2402,7 @@ function renderCompareRound(lv) {
     side.setAttribute('aria-label', numWord(n) + countTheme.unit + countTheme.itemName);
     for (let i = 0; i < n; i++) {
       const s = document.createElement('span');
-      s.textContent = countTheme.itemEmoji;
+      paintLearningArt(s, countTheme.itemEmoji);
       side.appendChild(s);
     }
     side.addEventListener('click', () => onCompareChoice(side, n, a, b, askMore));
@@ -2020,7 +2475,7 @@ function renderAddRound() {
     for (let i = 0; i < n; i++) {
       const s = document.createElement('button');
       s.className = 'add-item';
-      s.textContent = countTheme.itemEmoji;
+      paintLearningArt(s, countTheme.itemEmoji);
       makeCountable(s, counter);
       row.appendChild(s);
     }
@@ -2029,7 +2484,7 @@ function renderAddRound() {
   row.appendChild(makeOp('+'));
   appendItems(b);
   row.appendChild(makeOp('='));
-  row.appendChild(makeOp('❓'));
+  row.appendChild(makeOp('?'));
   stage.appendChild(row);
 
   /* 数字选项直接给出，孩子可先点物品数一数 */
@@ -2080,7 +2535,7 @@ function renderSubRound() {
   for (let i = 0; i < a; i++) {
     const s = document.createElement('button');
     s.className = 'add-item sub-item';
-    s.textContent = countTheme.itemEmoji;
+    paintLearningArt(s, countTheme.itemEmoji);
     makeCountable(s, counter);
     row.appendChild(s);
     items.push(s);
@@ -2106,7 +2561,7 @@ function buildTenFrame(filled, emoji, counter) {
       const cell = document.createElement('button');
       cell.className = 'frame-cell filled add-item';
       cell.style.fontSize = '28px';
-      cell.textContent = emoji;
+      paintLearningArt(cell, emoji);
       makeCountable(cell, counter);
       frame.appendChild(cell);
       cells.push(cell);
@@ -2125,7 +2580,7 @@ function buildLooseGroup(container, n, emoji, counter, extraClass) {
   for (let i = 0; i < n; i++) {
     const s = document.createElement('button');
     s.className = 'add-item' + (extraClass ? ' ' + extraClass : '');
-    s.textContent = emoji;
+    paintLearningArt(s, emoji);
     makeCountable(s, counter);
     container.appendChild(s);
     made.push(s);
@@ -2299,7 +2754,7 @@ function renderStoryRound(lv) {
 
   const figure = document.createElement('div');
   figure.className = 'judge-figure';
-  figure.textContent = ch.emoji;
+  paintLearningArt(figure, ch.emoji);
   stage.appendChild(figure);
 
   const counter = { n: 0 };
@@ -2501,7 +2956,7 @@ function renderCmdItems(items) {
     btn.style.setProperty('--in-delay', (i * 0.07) + 's');
     const emoji = document.createElement('span');
     emoji.className = 'cmd-emoji' + (it.sizeClass ? ' ' + it.sizeClass : '');
-    emoji.textContent = it.emoji;
+    paintLearningArt(emoji, it.emoji);
     btn.appendChild(emoji);
     if (it.label) {
       const label = document.createElement('span');
@@ -2593,12 +3048,12 @@ function roundJudge() {
   stage.innerHTML = '';
   const figure = document.createElement('div');
   figure.className = 'judge-figure';
-  figure.textContent = q.emoji;
+  paintLearningArt(figure, q.emoji);
   stage.appendChild(figure);
 
   const explain = q.answer ? '这句话是对的！' : '这句话不对哦！';
-  [{ yes: true, cls: 'judge-yes', icon: '✔️', label: '对' },
-   { yes: false, cls: 'judge-no', icon: '✖️', label: '不对' }].forEach((cfg, i) => {
+  [{ yes: true, cls: 'judge-yes', icon: glyph('check'), label: '对' },
+   { yes: false, cls: 'judge-no', icon: glyph('cross'), label: '不对' }].forEach((cfg, i) => {
     const btn = document.createElement('button');
     btn.className = 'judge-btn ' + cfg.cls;
     btn.style.setProperty('--in-delay', (0.1 + i * 0.08) + 's');
@@ -2681,6 +3136,32 @@ const LITERACY_WORDS = [
   { text: '飞机', pinyin: 'fēi jī', emoji: '✈️', lv: 3 },
   { text: '蛋糕', pinyin: 'dàn gāo', emoji: '🎂', lv: 3 },
   { text: '彩虹', pinyin: 'cǎi hóng', emoji: '🌈', lv: 3 },
+  { text:'土', pinyin:'tǔ', emoji:'🟫', lv:1 },
+  { text:'木', pinyin:'mù', emoji:'🪵', lv:1 },
+  { text:'米', pinyin:'mǐ', emoji:'🍚', lv:1 },
+  { text:'瓜', pinyin:'guā', emoji:'🍉', lv:1 },
+  { text:'果', pinyin:'guǒ', emoji:'🍎', lv:1 },
+  { text:'草', pinyin:'cǎo', emoji:'🌿', lv:1 },
+  { text:'牛奶', pinyin:'niú nǎi', emoji:'🥛', lv:3 },
+  { text:'叶', pinyin:'yè', emoji:'🍃', lv:2 },
+  { text:'虫', pinyin:'chóng', emoji:'🐛', lv:2 },
+  { text:'龙虾', pinyin:'lóng xiā', emoji:'🦞', lv:3 },
+  { text:'包', pinyin:'bāo', emoji:'🎒', lv:2 },
+  { text:'钟', pinyin:'zhōng', emoji:'⏰', lv:2 },
+  { text:'杯', pinyin:'bēi', emoji:'🥤', lv:2 },
+  { text:'球', pinyin:'qiú', emoji:'⚽', lv:2 },
+  { text:'衣', pinyin:'yī', emoji:'👕', lv:2 },
+  { text:'帽', pinyin:'mào', emoji:'🧢', lv:2 },
+  { text:'鞋', pinyin:'xié', emoji:'👟', lv:2 },
+  { text:'玉米', pinyin:'yù mǐ', emoji:'🌽', lv:3 },
+  { text:'西瓜', pinyin:'xī guā', emoji:'🍉', lv:3 },
+  { text:'小鸟', pinyin:'xiǎo niǎo', emoji:'🐦', lv:3 },
+  { text:'白云', pinyin:'bái yún', emoji:'☁️', lv:3 },
+  { text:'雨伞', pinyin:'yǔ sǎn', emoji:'☂️', lv:3 },
+  { text:'书包', pinyin:'shū bāo', emoji:'🎒', lv:3 },
+  { text:'小花', pinyin:'xiǎo huā', emoji:'🌸', lv:3 },
+  { text:'树叶', pinyin:'shù yè', emoji:'🍃', lv:3 },
+  { text:'星星', pinyin:'xīng xing', emoji:'⭐', lv:3 },
 ];
 
 let litTarget = null;
@@ -2734,7 +3215,7 @@ function startLitRound() {
   if (mode === 'char2pic') {
     card.innerHTML = '<span class="lit-pinyin">' + target.pinyin + '</span><span class="lit-char">' + target.text + '</span>';
   } else {
-    card.innerHTML = '<span class="lit-figure">' + target.emoji + '</span>';
+    card.innerHTML = '<span class="lit-figure">' + learningArt(target.emoji) + '</span>';
   }
   stage.appendChild(card);
 
@@ -2744,7 +3225,8 @@ function startLitRound() {
     btn.style.setProperty('--in-delay', (i * 0.07) + 's');
     const span = document.createElement('span');
     span.className = 'cmd-emoji' + (mode === 'char2pic' ? '' : ' lit-choice');
-    span.textContent = mode === 'char2pic' ? w.emoji : w.text;
+    if (mode === 'char2pic') paintLearningArt(span, w.emoji);
+    else span.textContent = w.text;
     btn.appendChild(span);
     btn.setAttribute('aria-label', w.text);
     btn.addEventListener('click', () => onLitAnswer(w, btn, mode));
@@ -2797,7 +3279,7 @@ function enterLiteracy() {
 /* ================= 场景五：魔法逻辑（找规律 / 找不同） ================= */
 const PATTERN_POOLS = [
   ['🍎', '🍌', '🍇'],
-  ['🔴', '🔵', '🟡'],
+  ['🔴', '🔷', '⭐'],
   ['⭐', '🌙', '☁️'],
   ['🐱', '🐶', '🐰'],
   ['🌸', '🍀', '🍄'],
@@ -2870,7 +3352,7 @@ function renderPatternRound(lv) {
   seq.forEach(s => {
     const slot = document.createElement('span');
     slot.className = 'pattern-slot';
-    slot.textContent = s;
+    paintLearningArt(slot, s);
     rowEl.appendChild(slot);
   });
   const qSlot = document.createElement('span');
@@ -2885,7 +3367,7 @@ function renderPatternRound(lv) {
     btn.style.setProperty('--in-delay', (i * 0.07) + 's');
     const span = document.createElement('span');
     span.className = 'cmd-emoji';
-    span.textContent = s;
+    paintLearningArt(span, s);
     btn.appendChild(span);
     btn.addEventListener('click', () => {
       if (logicLocked) return;
@@ -2893,7 +3375,7 @@ function renderPatternRound(lv) {
       const ok = s === answer;
       if (!logicRecorded) { Progress.record('logic', ok); logicRecorded = true; }
       if (ok) {
-        qSlot.textContent = answer;
+        paintLearningArt(qSlot, answer);
         qSlot.classList.remove('pattern-q');
         qSlot.classList.add('reveal'); /* 谜底跳进空格 */
         logicCorrect(btn, '就是它！它们排队是有规律的！');
@@ -2935,7 +3417,7 @@ function renderOddOneRound(lv) {
     btn.style.setProperty('--in-delay', (i * 0.07) + 's');
     const span = document.createElement('span');
     span.className = 'cmd-emoji';
-    span.textContent = s;
+    paintLearningArt(span, s);
     btn.appendChild(span);
     btn.addEventListener('click', () => {
       if (logicLocked) return;
@@ -3052,18 +3534,418 @@ function idleRepeat() {
 function armIdleNudge() {
   if (idleTimer) clearTimeout(idleTimer);
   idleTimer = setTimeout(() => {
-    if (idleNudged) return;
+    if (idleNudged || !learningCanRun()) return;
     if (document.visibilityState !== 'visible') return;
     if (!$('#voice-panel').classList.contains('hidden') || !$('#parent-panel').classList.contains('hidden')) return;
     if (idleRepeat()) idleNudged = true;
   }, 22000);
 }
 
+/* ================= 花园手帐与原创纸艺插画 ================= */
+let activeScene = 'home';
+let learningPaused = false;
+let artSerial = 0;
+function reducedMotion() {
+  return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+}
+function syncPauseControl(paused) {
+  const button=$('#btn-pause');
+  button.innerHTML=uiIcon(paused ? 'play' : 'pause');
+  button.setAttribute('aria-label',paused ? '继续学习' : '暂停学习');
+  button.setAttribute('aria-pressed',String(paused));
+}
+function openLearningPause() {
+  if (learningPaused || ['home','medals','journal'].includes(activeScene)) return;
+  learningPaused = true;
+  syncPauseControl(true);
+  document.body.dataset.learningPaused = 'true';
+  document.body.dataset.state = 'paused';
+  pauseLearningTimers(); stopSpeak(); hideBubble();
+  $('#confetti-layer').innerHTML='';
+  $('#pause-overlay').classList.remove('hidden');
+  $('#pause-panel').classList.add('game-pause');
+  $('#pause-panel').classList.remove('hidden');
+  Sfx.pop();
+}
+function closeLearningPause() {
+  learningPaused = false;
+  syncPauseControl(false);
+  document.body.dataset.learningPaused = 'false';
+  document.body.dataset.state = 'playing';
+  $('#pause-overlay').classList.add('hidden');
+  $('#pause-panel').classList.add('hidden');
+  $('#pause-panel').classList.remove('game-pause');
+  resumeLearningTimers(); Sfx.pop();
+}
+function restartLearning() {
+  ({ animals:enterAnimals, counting:enterCounting, commands:enterCommands, literacy:enterLiteracy, logic:enterLogic }[activeScene] || (()=>showScreen('home')))();
+}
+const GARDEN_CHAPTERS = [
+  {title:'晨光草地',message:'草地醒来了，去听听树林的声音。',names:['第一片叶','清晨露珠','草丛脚印','小小种子','暖暖阳光','花间朋友','随风摇摆','草地来信']},
+  {title:'林间来信',message:'带着发现出发，花园的灯就要亮啦。',names:['木桥那边','蘑菇小伞','树梢问候','松果口袋','溪水唱歌','叶子书签','林间邮局','一封回信']},
+  {title:'星光花园',message:'每一次认真想一想，都让花园更明亮。',names:['月亮升起','第一盏灯','晚风轻轻','星星排队','花园晚会','朋友到齐','心愿种子','明天再见']},
+];
+function gardenProgress() {
+  const correct = Progress.modules.reduce((sum,mod)=>sum+Progress.get(mod).correct,0);
+  const stamps = Math.min(24,Math.floor(correct/3));
+  return { correct, stamps, chapter:Math.min(2,Math.floor(stamps/8)), next:stamps>=24 ? 0 : 3-(correct%3) };
+}
+function renderGardenSummary() {
+  if (!Progress.data) return;
+  const g=gardenProgress();
+  $('#garden-count').textContent=g.stamps+' / 24 ↗';
+  $('#garden-next').textContent=g.stamps===24 ? '花园亮起来了，明天继续发现' : GARDEN_CHAPTERS[g.chapter].title+'，还差'+g.next+'题' ;
+}
+function renderJournal() {
+  const box=$('#journal-pages'); box.innerHTML='';
+  const g=gardenProgress();
+  GARDEN_CHAPTERS.forEach((chapter,c)=>{
+    const section=document.createElement('div'); section.className='journal-chapter';
+    const earned=Math.min(8,Math.max(0,g.stamps-c*8));
+    section.innerHTML='<span class="chapter-number">'+earned+' / 8</span><h3>'+chapter.title+'</h3><p>'+chapter.message+'</p><div class="stamp-grid">'+chapter.names.map((name,i)=>{
+      const done=c*8+i<g.stamps;
+      return '<div class="garden-stamp'+(done?' earned':'')+'"><i aria-label="'+(done?'已点亮':'未点亮')+'">'+(done?['❧','✿','✦'][c]:String(i+1))+'</i>'+name+'</div>';
+    }).join('')+'</div>';
+    box.appendChild(section);
+  });
+}
+// 24位动物共享纸张材质，但保留各自的耳朵、条纹、喙、角、鼻子与鳍轮廓。
+function animalArt(name) {
+  const id='paper-animal-'+(++artSerial);
+  const info={
+    '狮子':['#D6A04F','lion'],'大象':['#A4B3AF','elephant'],'长颈鹿':['#E1B55F','giraffe'],'斑马':['#E5E6D7','zebra'],
+    '大熊猫':['#F5F1DF','panda'],'小猴子':['#A47B59','monkey'],'老虎':['#DC9C55','tiger'],'小兔子':['#DADBCD','rabbit'],
+    '小狗':['#B88B5B','dog'],'小猫':['#DAB782','cat'],'小鸡':['#E8BE51','chick'],'奶牛':['#EEEDE0','cow'],
+    '海豚':['#719EA6','dolphin'],'鲸鱼':['#698EA3','whale'],'小螃蟹':['#C5795B','crab'],'章鱼':['#C18E91','octopus'],
+    '犀牛':['#A5ADA6','rhino'],'河马':['#ADABA7','hippo'],'松鼠':['#B58B67','squirrel'],'棕熊':['#A3815C','bear'],
+    '小羊':['#F2EEDD','sheep'],'小鸭子':['#E1BE61','duck'],'海龟':['#7E9E6D','turtle'],'海马':['#D7AC60','seahorse'],
+    '小狐狸':['#CE925C','fox'],
+  }[name]||['#CE925C','fox'];
+  const [color,kind]=info;
+  const shade='#'+color.slice(1).match(/../g).map(c=>Math.round(parseInt(c,16)*.82).toString(16).padStart(2,'0')).join('');
+  const ellipse=(x,y,rx,ry,fill,extra='')=>`<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="${fill}" ${extra}/>`;
+  const path=(d,fill,extra='')=>`<path d="${d}" fill="${fill}" ${extra}/>`;
+  const ink='#344A40', cream='#FFF4D8';
+  let shapes='';
+  let eyes=ellipse(51,66,3,4,ink)+ellipse(77,66,3,4,ink)+ellipse(50,65,1,1,'white')+ellipse(76,65,1,1,'white');
+  let face=ellipse(64,80,18,12,cream)+path('M59 76 Q64 72 69 76 L64 81Z',ink)+path('M64 81v5m0-1q-6 5-10 0m10 0q6 5 10 0','none',`stroke="${ink}" stroke-width="1.6" stroke-linecap="round"`);
+  if(['dolphin','whale'].includes(kind)) {
+    shapes=path('M20 64Q30 37 64 39Q95 39 104 69L121 56 117 78 101 79Q87 100 53 93Q29 94 20 74L9 69Z',`url(#${id})`)+path('M58 41L70 24 76 44Z',color)+path('M46 87L57 106 73 90Z',color)+ellipse(58,84,28,9,'#D4DFD5')+ellipse(34,65,3,4,ink)+path('M28 74Q39 83 48 73','none',`stroke="${ink}" stroke-width="2" stroke-linecap="round"`);
+    if(kind==='whale')shapes+=path('M42 35Q28 18 37 11M44 33Q53 13 59 18','none','stroke="#83BAC0" stroke-width="5" stroke-linecap="round"');
+  } else if(kind==='crab') {
+    shapes=path('M35 79L16 93M34 87L19 105M93 79L113 93M91 87L107 105','none',`stroke="${color}" stroke-width="7" stroke-linecap="round"`)+path('M34 68L17 51 14 33 25 40 33 30 32 48 45 62M94 68L110 51 114 33 102 40 96 30 95 48 83 62',color)+ellipse(64,77,35,25,`url(#${id})`)+path('M49 59V45M78 59V45','none',`stroke="${color}" stroke-width="6"`)+ellipse(49,44,5,5,cream)+ellipse(78,44,5,5,cream)+ellipse(49,44,2.5,3,ink)+ellipse(78,44,2.5,3,ink)+path('M56 81Q64 89 73 80','none',`stroke="${ink}" stroke-width="2"`);
+  } else if(kind==='octopus') {
+    shapes=path('M33 77Q18 108 9 91M44 83Q35 116 26 104M56 86Q52 119 43 110M67 87Q76 120 81 107M79 83Q100 115 103 96M92 75Q118 103 121 84','none',`stroke="${color}" stroke-width="11" stroke-linecap="round"`)+ellipse(64,61,36,37,`url(#${id})`)+eyes+path('M57 79Q64 86 73 78','none',`stroke="${ink}" stroke-width="2"`);
+  } else if(kind==='turtle') {
+    shapes=ellipse(38,101,12,6,color)+ellipse(91,101,12,6,color)+ellipse(21,78,18,16,`url(#${id})`)+ellipse(72,77,41,27,'#65865A')+path('M57 58L78 56 93 75 80 92 57 92 47 75Z','#9CB783',`stroke="${ink}" stroke-opacity=".25" stroke-width="2"`)+ellipse(18,73,3,3,ink)+path('M10 85Q20 90 28 83','none',`stroke="${ink}" stroke-width="2"`);
+  } else if(kind==='seahorse') {
+    shapes=path('M75 33Q56 17 47 37L30 46 30 56 49 53Q39 71 63 83Q89 100 65 104Q50 106 54 95M61 79Q43 65 41 81','none',`stroke="${color}" stroke-width="14" stroke-linecap="round"`)+path('M78 42L93 53 76 72 85 82 69 85','#F0D6A2')+ellipse(58,41,3,4,ink)+path('M65 33L69 22 76 31',color);
+  } else if(['giraffe','zebra','rhino','hippo'].includes(kind)) {
+    const fill=`url(#${id})`;
+    const outline=`stroke="${shade}" stroke-width="1.3" stroke-linejoin="round"`;
+    shapes=ellipse(60,88,36,20,fill)+path('M34 97V113H45L48 100M74 99V114H85L88 95',color)+path('M29 84Q17 74 14 90','none',`stroke="${shade}" stroke-width="3" stroke-linecap="round"`);
+    if(kind==='giraffe') {
+      shapes+=path('M76 93L78 33 94 32 95 85Z',fill,outline)+ellipse(98,32,24,13,fill)+path('M90 22L89 8M102 22L105 10','none',`stroke="${shade}" stroke-width="4" stroke-linecap="round"`)+path('M81 27L70 18 73 31M106 23L119 18 115 32',color)+ellipse(100,29,2.7,3.4,ink)+ellipse(116,35,2,2,ink)+path('M108 39L116 39','none',`stroke="${ink}" stroke-width="1.3"`);
+      for(const [x,y,r] of [[43,83,6],[62,81,7],[72,95,5],[87,48,5],[86,67,5]])shapes+=ellipse(x,y,r,r,'#A87A3C');
+    } else if(kind==='zebra') {
+      shapes+=path('M77 93L73 44 88 35 106 55 101 69 88 67 91 88Z',fill,outline)+path('M75 44L71 51 69 80 77 83Z',ink)+path('M84 40L80 16 88 13 92 41M96 45L98 21 106 23 102 49',color,outline)+ellipse(98,61,11,8,'#737F74')+ellipse(94,47,3,3,ink);
+      shapes+=path('M34 73L43 102 47 102 43 70M53 68L58 107 64 108 60 69M69 71L75 104 81 101 77 73M80 48L94 54 99 52 84 44M80 59L89 62 90 59Z',ink);
+    } else if(kind==='rhino') {
+      shapes+=ellipse(86,77,26,25,fill)+path('M81 86Q96 56 121 73L118 92 87 96Z',fill,outline)+path('M103 76L113 45 117 76M94 76L99 62 102 77',cream,outline)+path('M80 57L73 40 87 44 88 58',color)+ellipse(91,69,3,3,ink)+path('M101 87H117','none',`stroke="${ink}" stroke-width="1.4"`);
+    } else {
+      shapes+=ellipse(88,74,28,26,fill)+ellipse(94,89,30,16,'#BEB4AB')+ellipse(73,51,7,8,color)+ellipse(101,49,7,8,color)+ellipse(82,68,3,3,ink)+ellipse(103,66,3,3,ink)+ellipse(87,84,3,2,ink)+ellipse(110,84,3,2,ink)+path('M80 95Q98 104 117 94','none',`stroke="${ink}" stroke-width="1.5"`);
+    }
+    shapes='<g data-anatomy="'+kind+'">'+shapes+'</g>';
+  } else if(['chick','duck'].includes(kind)) {
+    shapes=ellipse(64,78,34,31,`url(#${id})`)+ellipse(64,50,27,26,`url(#${id})`)+ellipse(52,49,3,4,ink)+ellipse(75,49,3,4,ink)+ellipse(64,61,14,6,'#C97B3F')+path('M43 102L35 111 55 111M75 102L73 111 94 111','#C97B3F')+ellipse(40,80,10,18,'#F1D788')+path('M60 26Q48 8 57 12L65 26M64 25Q72 7 76 16L69 28',color);
+  } else {
+    const fill=`url(#${id})`;
+    // 身体、爪子和接地影在全部哺乳动物中保持同一材质。
+    shapes=ellipse(64,94,29,21,fill)+ellipse(45,108,14,8,color)+ellipse(82,108,14,8,color);
+    if(kind==='lion')shapes+=path('M64 16L80 23 96 23 102 39 114 54 109 72 109 86 91 95 78 109 61 101 45 107 33 94 18 82 21 64 15 47 30 34 39 20Z','#A97640');
+    if(kind==='squirrel')shapes=path('M89 102Q135 74 105 44Q85 37 84 64Q110 61 91 86Z','#A87550')+shapes;
+    if(['rabbit'].includes(kind))shapes+=ellipse(48,27,10,25,color,'transform="rotate(-12 48 27)"')+ellipse(80,27,10,25,color,'transform="rotate(12 80 27)"')+ellipse(48,26,4,17,'#DAB3AA')+ellipse(80,26,4,17,'#DAB3AA');
+    else if(['cat','tiger','fox'].includes(kind))shapes+=path('M30 50L29 14 54 36M98 50L99 14 74 36',color)+path('M36 40L35 24 48 37M92 40L94 24 81 37','#E6B5A0');
+    else if(kind==='elephant')shapes+=ellipse(31,60,24,33,color)+ellipse(97,60,24,33,color)+ellipse(30,60,13,22,'#C4C9BC')+ellipse(98,60,13,22,'#C4C9BC');
+    else if(kind==='dog')shapes+=ellipse(30,57,13,29,'#8E6949','transform="rotate(10 30 57)"')+ellipse(98,57,13,29,'#8E6949','transform="rotate(-10 98 57)"');
+    else shapes+=ellipse(35,34,13,16,kind==='panda'?ink:color)+ellipse(93,34,13,16,kind==='panda'?ink:color)+ellipse(35,34,7,9,'#DDC9AD')+ellipse(93,34,7,9,'#DDC9AD');
+    shapes+=ellipse(64,61,36,34,fill);
+    if(kind==='monkey') shapes+=ellipse(64,68,28,25,'#E7CDA7')+ellipse(32,61,11,13,'#DABC94')+ellipse(96,61,11,13,'#DABC94');
+    if(kind==='sheep') shapes+=path('M32 45Q19 32 34 23Q44 8 55 20Q70 7 79 21Q100 13 100 33Q115 49 97 55L88 43 40 44Z',cream)+ellipse(64,70,24,25,'#BBA78B');
+    if(kind==='panda')shapes+=ellipse(49,64,10,13,ink,'transform="rotate(24 49 64)"')+ellipse(79,64,10,13,ink,'transform="rotate(-24 79 64)"');
+    if(['zebra','tiger'].includes(kind))shapes+=path('M54 29L60 48 64 29M68 29L69 48 78 32M30 48L45 55 30 61M98 47L82 55 98 60M34 72L46 74 36 81M94 71L82 74 93 81',kind==='zebra'?ink:'#755442');
+    if(['giraffe','cow'].includes(kind))shapes+=path('M47 31L44 15M79 31L83 15','none','stroke="#A28153" stroke-width="7" stroke-linecap="round"');
+    if(kind==='giraffe')shapes+=ellipse(38,54,7,8,'#B18541')+ellipse(86,50,6,7,'#B18541')+ellipse(50,39,6,6,'#B18541');
+    if(kind==='cow')shapes+=ellipse(84,53,13,16,ink)+ellipse(64,84,22,13,'#D6AAA0');
+    if(kind==='fox')shapes+=path('M29 55L61 77 36 84M99 55L67 77 92 84',cream);
+    if(kind==='hippo')face=ellipse(64,85,31,18,'#C3B8AA')+ellipse(49,78,3,3,ink)+ellipse(78,78,3,3,ink)+path('M47 92Q64 100 82 91','none',`stroke="${ink}" stroke-width="2"`);
+    if(kind==='rhino')face=ellipse(64,81,26,18,'#C2C8B9')+path('M59 81L64 50 72 81',cream)+path('M48 94Q64 100 81 93','none',`stroke="${ink}" stroke-width="2"`);
+    shapes+=face+eyes;
+    if(kind==='panda')shapes+=ellipse(51,65,2,3,'#FFF')+ellipse(77,65,2,3,'#FFF');
+    if(kind==='elephant')shapes+=path('M64 76Q62 106 78 98','none',`stroke="${color}" stroke-width="15" stroke-linecap="round"`)+path('M58 83L52 95 49 80M74 83L79 95 82 80',cream);
+    if(kind==='cat')shapes+=path('M38 76L21 72M37 81L20 84M91 76L108 72M92 81L109 84','none',`stroke="${ink}" stroke-width="1.5"`);
+  }
+  return `<svg viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs><linearGradient id="${id}" x1="0" y1="0" x2="1" y2="1"><stop stop-color="${color}"/><stop offset="1" stop-color="${shade}"/></linearGradient></defs><ellipse cx="67" cy="117" rx="41" ry="6" fill="#284B40" opacity=".12"/>${shapes}<ellipse cx="48" cy="43" rx="12" ry="5" fill="white" opacity=".12" transform="rotate(-25 48 43)"/></svg>`;
+}
+function sceneArt(scene) {
+  let base=`<svg viewBox="0 0 240 150" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect width="240" height="150" fill="#DFEBD6"/><circle cx="196" cy="26" r="23" fill="#F1CC72"/><path d="M0 102Q75 44 151 111T260 81V155H0" fill="#B5CC9D"/><path d="M0 126Q80 85 166 120T245 111V155H0" fill="#789A69"/><path d="M0 145Q120 116 240 144V150H0" fill="#557B54"/>`;
+  if(scene==='counting') base=base.replace('#DFEBD6','#365D64').replace('#B5CC9D','#648E85').replace('#789A69','#466E68').replace('#557B54','#284F4B')+'<path d="M25 25h8m-4-4v8M161 17h7m-3-3v6M218 67h6m-3-3v6" stroke="#FFF4D8" stroke-width="2"/>';
+  if(scene==='commands') base=base.replace('#DFEBD6','#F4E6C7').replace('#B5CC9D','#DDC79B').replace('#789A69','#BFA776').replace('#557B54','#9F875C');
+  if(scene==='literacy') base=base.replace('#DFEBD6','#EADDD0').replace('#B5CC9D','#C4C5A5').replace('#789A69','#9CA27E').replace('#557B54','#6B8262');
+  if(scene==='logic') base=base.replace('#DFEBD6','#DCE9E4').replace('#B5CC9D','#A5C3B4').replace('#789A69','#7EA296').replace('#557B54','#4F7B70');
+  const fox=animalArt('小狐狸');
+  const icons={
+    animals:`<svg x="64" y="9" width="110" height="130">${animalArt('狮子')}</svg><path d="M34 126V91M34 110L23 101M34 101L44 92M203 133V100M203 112L215 105" stroke="#487A56" stroke-width="4" fill="none"/>`,
+    counting:'<g transform="translate(74 18) rotate(-8 48 56)"><rect x="-7" y="12" width="102" height="112" rx="15" fill="#FFF8EB" stroke="#B5BA91" stroke-width="2"/><path d="M3 12V4M26 12V4M50 12V4M74 12V4" stroke="#778A63" stroke-width="5" stroke-linecap="round"/><text x="44" y="82" text-anchor="middle" font-size="54" font-weight="800" fill="#3E6D61" font-family="sans-serif">3</text><path d="M12 99H75" stroke="#C7CFB0" stroke-width="2"/></g><circle cx="38" cy="103" r="15" fill="#E9B84B"/><circle cx="192" cy="111" r="14" fill="#BD674E"/>',
+    commands:'<path d="M52 118V55L117 15 183 55V118Z" fill="#FFF3CF" stroke="#B6BEA0" stroke-width="2"/><path d="M52 58L117 101 183 58M52 118L96 85M183 118L140 85" fill="none" stroke="#C8B986" stroke-width="2"/><path d="M101 50Q106 30 122 35Q142 39 130 59L116 80M101 55Q109 54 113 60" fill="none" stroke="#557D65" stroke-width="6" stroke-linecap="round"/><path d="M154 30Q168 40 163 52M169 20Q191 36 182 58" fill="none" stroke="#BD674E" stroke-width="3" stroke-linecap="round"/>',
+    literacy:'<g transform="rotate(-8 120 82)"><path d="M42 42Q75 31 120 48Q160 30 198 44V117Q158 105 120 120Q79 104 42 116Z" fill="#FFFAED" stroke="#A9BA99" stroke-width="2"/><path d="M120 48V120" stroke="#C1CBB0" stroke-width="2"/><text x="80" y="90" font-size="38" text-anchor="middle" font-family="serif" fill="#3D6A56">木</text><path d="M150 87V62M150 72L139 68M150 78L165 69" stroke="#688C5A" stroke-width="5" stroke-linecap="round"/><ellipse cx="151" cy="55" rx="17" ry="12" fill="#9FB47C"/></g>',
+    logic:'<path d="M0 120H240" stroke="#486E52" stroke-width="2"/><g stroke="#FFEDBF" stroke-width="2"><path d="M48 41L72 54V84L48 99 23 84V56Z" fill="#D6A455"/><path d="M119 37L144 52V82L119 97 93 82V52Z" fill="#7F9E84"/><path d="M189 42L214 56V86L189 101 163 86V56Z" fill="#BB8265"/></g><path d="M23 56L48 70 72 54M48 70V99M93 52L119 66 144 52M119 66V97M163 56L189 71 214 56M189 71V101" stroke="#FFF1CE88" fill="none" stroke-width="2"/>',
+  };
+  if(scene==='guide')return base+`<path d="M70 150Q105 97 192 150" fill="#EBD3A1"/><svg x="60" y="0" width="135" height="145">${fox}</svg><path d="M124 91L150 96 146 121 122 116Z" fill="#607E68" stroke="#3E6655" stroke-width="2"/><circle cx="136" cy="105" r="3" fill="#E9B84B"/><path d="M16 122V98M16 114L6 107M223 126V103" fill="none" stroke="#3D6A56" stroke-width="3"/><path d="M210 102Q223 76 236 102Z" fill="#BD674E"/><circle cx="221" cy="92" r="2.5" fill="#FFF4DD"/><path d="M20 130h21M190 134h15" stroke="#D8DCAD" stroke-width="3" stroke-linecap="round"/></svg>`;
+  return base+(icons[scene]||icons.animals)+'</svg>';
+}
+/* 界面小图形：全部是内联 SVG，不使用系统 emoji。颜色随文字色或写死的主题色。 */
+const GLYPH_LINE = 'fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"';
+const GLYPHS = {
+  star: '<path d="M12 2.6l2.9 6 6.5.9-4.7 4.5 1.1 6.5L12 17.4l-5.8 3.1 1.1-6.5L2.6 9.5l6.5-.9z" fill="#EBB94C" stroke="#B88722" stroke-width="1.5" stroke-linejoin="round"/><path d="M9.3 8.4l2.7-3.2" fill="none" stroke="#FFF3C9" stroke-width="1.4" stroke-linecap="round"/>',
+  sparkle: '<path d="M12 2.5l2.2 7.3 7.3 2.2-7.3 2.2L12 21.5l-2.2-7.3L2.5 12l7.3-2.2z" fill="#F3D27A" stroke="#C99A2E" stroke-width="1.2" stroke-linejoin="round"/>',
+  balloon: '<ellipse cx="12" cy="9.3" rx="6.3" ry="7.3" fill="currentColor"/><ellipse cx="9.6" cy="6.6" rx="1.5" ry="2.4" fill="#FFF8EB" opacity=".55"/><path d="M12 16.6l-1.7 2.3h3.4z" fill="currentColor"/><path d="M12 19c-1.5 1.3-1.5 2.4 0 3.2" fill="none" stroke="#7A8C73" stroke-width="1.2" stroke-linecap="round"/>',
+  ribbon: '<path d="M3 8l12-4 6 8-12 8z" fill="currentColor"/><path d="M6 9.4l8.5-2.8" fill="none" stroke="#FFF8EB" stroke-width="1.2" opacity=".6"/>',
+  dot: '<circle cx="12" cy="12" r="7" fill="currentColor"/><circle cx="9.6" cy="9.6" r="2" fill="#FFF8EB" opacity=".55"/>',
+  speaker: '<g ' + GLYPH_LINE + '><path d="M4 9.5h3.8L13 5v14l-5.2-4.5H4z"/><path d="M16.3 9a4.2 4.2 0 0 1 0 6M19 6.5a8 8 0 0 1 0 11"/></g>',
+  search: '<g ' + GLYPH_LINE + '><circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5.5 5.5"/></g>',
+  close: '<g ' + GLYPH_LINE + ' stroke-width="2.4"><path d="M6 6l12 12M18 6L6 18"/></g>',
+  cross: '<g ' + GLYPH_LINE + ' stroke-width="3"><path d="M6 6l12 12M18 6L6 18"/></g>',
+  check: '<g ' + GLYPH_LINE + ' stroke-width="3"><path d="M4.5 12.5l5 5L19.5 7"/></g>',
+  again: '<g ' + GLYPH_LINE + '><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20.5 3.5v4.8h-4.8"/></g>',
+  next: '<g ' + GLYPH_LINE + ' stroke-width="2.4"><path d="M4 12h15M13 6l6 6-6 6"/></g>',
+  play: '<path d="M8 5.2l11 6.8-11 6.8z" fill="currentColor" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>',
+  sun: '<circle cx="12" cy="12" r="4.4" fill="#F1CC72" stroke="#C99A2E" stroke-width="1.5"/><g fill="none" stroke="#C99A2E" stroke-width="1.8" stroke-linecap="round"><path d="M12 2.5v2.4M12 19.1v2.4M2.5 12h2.4M19.1 12h2.4M5.3 5.3l1.7 1.7M17 17l1.7 1.7M18.7 5.3L17 7M7 17l-1.7 1.7"/></g>',
+  bolt: '<path d="M13.6 2L5 13.6h6L9.8 22 19 10.2h-6z" fill="#EBB94C" stroke="#B88722" stroke-width="1.6" stroke-linejoin="round"/>',
+  flame: '<path d="M12.2 2.6c.8 4 5.3 6.2 5.3 11.3a5.5 5.5 0 0 1-11 0c0-2.3 1-3.8 2.3-5 .1 2 .9 3.1 2 3.4-.7-3.4-.4-6.200 1.400-9.700z" fill="#E58A55" stroke="#AE552F" stroke-width="1.5" stroke-linejoin="round"/><path d="M12 20a2.800 2.800 0 0 1-2.800-2.800c0-1.700 1.300-2.500 2.100-3.700.6 1.100 3.500 2.100 3.500 4A2.800 2.800 0 0 1 12 20z" fill="#F6CC7C"/>',
+  snow: '<g fill="none" stroke="#5C9BB5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5v19M3.800 7.250l16.400 9.500M3.800 16.750l16.400-9.500"/><path d="M9.500 4.300L12 6.500l2.500-2.200M9.500 19.700L12 17.500l2.500 2.200M4 10.200l3.200-.4-.7-3.100M20 13.800l-3.200.4.700 3.100M20 10.200l-3.200-.4.700-3.100M4 13.800l3.200.4-.7 3.100"/></g>',
+  wheat: '<g ' + GLYPH_LINE + '><path d="M12 22V8"/><path d="M12 8c-2.800 0-3.800-2-3.800-4.600 2.800 0 3.800 2 3.800 4.600zM12 8c2.800 0 3.800-2 3.800-4.600C13 3.400 12 5.400 12 8zM12 14c-2.800 0-3.800-2-3.800-4.600 2.800 0 3.800 2 3.800 4.600zM12 14c2.800 0 3.800-2 3.800-4.600-2.800 0-3.800 2-3.800 4.600z"/></g>',
+  tree: '<g ' + GLYPH_LINE + '><path d="M12 22v-5.500"/><path d="M12 2.500l5.500 7.500h-3l4.500 6.500H5L9.500 10h-3z"/></g>',
+  house: '<g ' + GLYPH_LINE + '><path d="M3 11.500L12 3.500l9 8"/><path d="M5.500 10v11h13V10M10 21v-6h4v6"/></g>',
+  wave: '<g ' + GLYPH_LINE + '><path d="M2.500 9c2.400-3 4.800-3 7.200 0s4.800 3 7.200 0l4.600-1.500M2.500 15.500c2.400-3 4.800-3 7.200 0s4.800 3 7.200 0l4.600-1.500"/></g>',
+  cloud: '<path d="M7 18.500a4 4 0 0 1-.4-8 5.500 5.500 0 0 1 10.500-1.200A4.700 4.700 0 0 1 17 18.500z" fill="#FFF8EB" stroke="currentColor" stroke-width="1.600" stroke-linejoin="round"/>',
+  flower: '<g fill="#F3C9B8" stroke="#BD674E" stroke-width="1.200"><circle cx="12" cy="6" r="3.200"/><circle cx="18" cy="11" r="3.200"/><circle cx="15.700" cy="18" r="3.200"/><circle cx="8.300" cy="18" r="3.200"/><circle cx="6" cy="11" r="3.200"/></g><circle cx="12" cy="12.500" r="3" fill="#EBB94C" stroke="#B88722" stroke-width="1.200"/>',
+  mushroom: '<path d="M3.500 12.500a8.500 8 0 0 1 17 0z" fill="#D77B63" stroke="#995039" stroke-width="1.500" stroke-linejoin="round"/><path d="M9 12.500v7h6v-7" fill="#FFF8EB" stroke="#995039" stroke-width="1.500" stroke-linejoin="round"/><circle cx="9" cy="9.500" r="1.200" fill="#FFF8EB"/><circle cx="14.500" cy="8.800" r="1.400" fill="#FFF8EB"/>',
+  leaf: '<g ' + GLYPH_LINE + '><path d="M5 19C5 9.500 10.500 4.500 20 4.500 20 14 15 19 5 19z"/><path d="M5 19l8.500-8.500"/></g>',
+  shell: '<g ' + GLYPH_LINE + '><path d="M12 20.500c-5.800 0-9-3.800-9-8 3-4 6-6 9-6s6 2 9 6c0 4.200-3.200 8-9 8z"/><path d="M12 20.500V7M8 8.500L6.500 18M16 8.500l1.500 9.500"/></g>',
+  boat: '<g ' + GLYPH_LINE + '><path d="M3 16h18l-3 4.500H6zM12 3v12.500M12 4.500l6 9.500h-6"/></g>',
+};
+function glyph(name) {
+  if (name === 'medal' || name === 'chart' || name === 'voice') return uiIcon(name === 'chart' ? 'parent' : name).replace('<svg ', '<svg class="ui-g" ');
+  const inner = GLYPHS[name];
+  if (!inner) throw new Error('缺少界面图形：' + name);
+  return '<svg class="ui-g ui-g-' + name + '" viewBox="0 0 24 24" aria-hidden="true" focusable="false">' + inner + '</svg>';
+}
+/* 带图形的按钮或标题：图形在前，文字放进独立的 span，文字内容与原先一致。 */
+function setGlyphLabel(el, name, text) {
+  el.innerHTML = glyph(name) + (text ? '<span class="ui-g-text">' + text + '</span>' : '');
+}
+function fillGlyphs() {
+  document.querySelectorAll('[data-glyph]').forEach(el => setGlyphLabel(el, el.dataset.glyph, (el.textContent || '').trim()));
+}
+function uiIcon(kind) {
+  const paths={home:'M3 11 12 3l9 8M5 10v11h5v-7h4v7h5V10',medal:'M8 3 6 9m10-6 2 6M8 3h8M12 9a6 6 0 1 0 0 12 6 6 0 0 0 0-12m0 3 1 2 2 .3-1.5 1.5.3 2.2-1.8-1-1.8 1 .3-2.2L8 14.3l2-.3Z',parent:'M5 20V12h3v8m3 0V5h3v15m3 0V9h3v11M3 21h19',voice:'M4 9h4l5-5v16l-5-5H4Zm13-2c4 3 4 7 0 10m-1-7c1 1 1 3 0 4',pause:'M8 5v14M16 5v14',play:'M8 5 19 12 8 19Z'};
+  return '<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="'+paths[kind]+'"/></svg>';
+}
+function countPositions(total) {
+  const columns=total<=4?2:total<=6?3:4;
+  const rows=Math.ceil(total/columns);
+  /* 桌面：物品随列数放大，横向铺到版心两侧、纵向拉开，舞台内上下左右的空带都不超过 80px */
+  const desk=window.matchMedia&&window.matchMedia('(min-width:1000px) and (min-height:620px)').matches;
+  const half={2:35,3:36,4:37}[columns];
+  return Array.from({length:total},(_,i)=>{
+    const row=Math.floor(i/columns),inRow=Math.min(columns,total-row*columns);
+    if(desk)return {x:50+(i%columns-(inRow-1)/2)*(2*half/(columns-1)),y:rows===1?50:rows===2?24+row*52:20+row*30};
+    return {x:50+(i%columns-(inRow-1)/2)*(76/columns),y:rows===1?50:rows===2?28+row*44:20+row*30};
+  });
+}
+function habitatArt(kind, wide) {
+  const palettes={grass:['#DFEEE2','#B6CCA2','#648866'],forest:['#D9E8DB','#ABC3A7','#426E55'],farm:['#F4E9CF','#DCCCA2','#93A471'],ocean:['#DCEFF0','#A7CFCC','#5C9C9A']};
+  const [sky,hill,leaf]=palettes[kind];
+  let left='',right='',mid='';
+  if(kind==='forest'){left='<path d="M28 262V125" stroke="#8D9270" stroke-width="10"/><path d="M-20 170 30 58 80 170Z" fill="'+leaf+'"/>';right='<path d="M573 275V115" stroke="#8D9270" stroke-width="10"/><path d="M530 165 575 42 620 165Z" fill="'+leaf+'"/>';}
+  if(kind==='farm'){left='<path d="M20 270V245H100V280M32 245V278M61 245V279M89 245V278" fill="none" stroke="#B59D6E" stroke-width="5"/>';right='<path d="M520 265V235H568V265Z" fill="#D5B984"/><path d="M510 238L542 210 576 238Z" fill="#AC7660"/>';}
+  if(kind==='ocean'){mid='<path d="M0 85Q70 60 140 85T280 85T420 85T560 85T700 85M0 101Q70 76 140 101T280 101T420 101T560 101T700 101" fill="none" stroke="#FFF8EB" stroke-opacity=".4" stroke-width="3"/>';left='<path d="M24 350Q12 320 29 300M30 350Q56 320 43 296" fill="none" stroke="'+leaf+'" stroke-width="7" stroke-linecap="round"/>';right='<path d="M574 348Q547 323 563 298" fill="none" stroke="'+leaf+'" stroke-width="7" stroke-linecap="round"/>';}
+  const dots='<g fill="#FFF4D8" opacity=".65"><circle cx="98" cy="350" r="3"/><circle cx="487" cy="369" r="4"/><circle cx="430" cy="353" r="2"/></g>';
+  if(!wide) return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400"><rect width="600" height="400" fill="'+sky+'"/><circle cx="64" cy="57" r="27" fill="#F1D287"/><path d="M0 265Q130 175 292 266T600 240V400H0Z" fill="'+hill+'"/><path d="M0 342Q150 273 313 341T600 322V400H0Z" fill="'+leaf+'" opacity=".7"/>'+mid+left+right+dots+'</svg>';
+  /* 宽屏版：向左右各延伸 300 单位铺满，岸边细节挪到两端，用 slice 填满舞台，避免两侧露出底色 */
+  const waves=mid?'<path d="M-300 85Q-230 60 -160 85T-20 85T120 85T260 85T400 85T540 85T680 85T820 85T960 85M-300 101Q-230 76 -160 101T-20 101T120 101T260 101T400 101T540 101T680 101T820 101T960 101" fill="none" stroke="#FFF8EB" stroke-opacity=".4" stroke-width="3"/>':'';
+  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="-300 0 1200 400" preserveAspectRatio="xMidYMid slice"><rect x="-300" width="1200" height="400" fill="'+sky+'"/><circle cx="-206" cy="57" r="27" fill="#F1D287"/><path d="M-300 265H0Q130 175 292 266T600 240H900V400H-300Z" fill="'+hill+'"/><path d="M-300 342H0Q150 273 313 341T600 322H900V400H-300Z" fill="'+leaf+'" opacity=".7"/>'+waves+'<g transform="translate(-270 0)">'+left+'</g><g transform="translate(270 0)">'+right+'</g>'+dots+'</svg>';
+}
+/* 学习内容的唯一插画入口。符号只作为原题库标识，不参与可见字形绘制。 */
+function learningArt(symbol) {
+  const animals={'🐰':'小兔子','🐻':'棕熊','🐵':'小猴子','🐶':'小狗','🐱':'小猫','🐮':'奶牛','🐑':'小羊','🦆':'小鸭子','🦁':'狮子','🐘':'大象','🦓':'斑马','🐯':'老虎'};
+  if(animals[symbol]) return animalArt(animals[symbol]).replace('<svg ', '<svg class="learning-art" ');
+  const id='learning-art-'+(++artSerial), defs=[];
+  const ink='#52644F', cream='#FFF4D8', gold='#DAB359', leaf='#87A476', red='#BC705B', blue='#709EA4', brown='#A18460';
+  const material=c=>{const k=id+'-'+c.slice(1);if(!defs.some(x=>x.includes('id="'+k+'"'))){const dark='#'+c.slice(1).match(/../g).map(v=>Math.round(parseInt(v,16)*.82).toString(16).padStart(2,'0')).join('');defs.push('<linearGradient id="'+k+'" x1="0" y1="0" x2="1" y2="1"><stop stop-color="'+c+'"/><stop offset="1" stop-color="'+dark+'"/></linearGradient>');}return 'url(#'+k+')';};
+  const p=(d,c,extra='')=>`<path d="${d}" fill="${c==='none'?'none':material(c)}" stroke="${ink}" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" ${extra}/>`;
+  const e=(x,y,rx,ry,c,extra='')=>`<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="${material(c)}" stroke="${ink}" stroke-width="1.3" ${extra}/>`;
+  const line=(d,c=ink,w=2)=>`<path d="${d}" fill="none" stroke="${c}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`;
+  const box=(x,y,w,h,r,c)=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}" fill="${material(c)}" stroke="${ink}" stroke-width="1.5"/>`;
+  const eye=(x,y)=>e(x,y,2.4,3.3,'#354B40')+e(x-.6,y-.9,.6,.7,'#FFFCF1');
+  const stem=(x=64,y=30)=>line(`M${x} ${y}q-2-12 7-18`,brown,4)+p(`M${x} ${y-8}q-25-20-28 0 15 10 28 0`,leaf);
+  const cloud=(x=64,y=55)=>p(`M${x-39} ${y+19}q-16-22 6-28 5-28 28-21 17-22 33 2 31-4 29 23 13 23-15 26h-62Z`,'#E6E7DB');
+  const spokes=(x,y,r,c,w=3)=>Array.from({length:8},(_,i)=>{const a=i*Math.PI/4;return line(`M${x+Math.cos(a)*r} ${y+Math.sin(a)*r}l${Math.cos(a)*10} ${Math.sin(a)*10}`,c,w);}).join('');
+  const leafShape=(x,y,angle=0)=>p(`M${x} ${y}q-30-31-38 6 6 24 38-6Z`,leaf,`transform="rotate(${angle} ${x} ${y})"`);
+  let art='';
+  switch(symbol){
+    case '🐟':art=p('M96 58 119 41 114 82 95 70Z',blue)+e(58,64,42,26,blue)+p('M58 39 72 23 78 44Z','#99B4A1')+p('M57 86 75 100 80 80Z','#99B4A1')+line('M50 44q-10 21 0 41')+eye(33,60)+line('M24 71q9 6 15-1');break;
+    case '🐸':art=e(64,82,34,26,leaf)+e(35,98,19,9,leaf)+e(94,98,19,9,leaf)+e(64,55,38,28,leaf)+e(42,32,12,14,leaf)+e(86,32,12,14,leaf)+eye(42,31)+eye(86,31)+p('M36 63Q64 88 94 63Q65 98 36 63Z',cream)+e(31,60,6,3,'#D3A989')+e(96,60,6,3,'#D3A989');break;
+    case '🐷':art=e(64,88,29,23,'#D7AAA0')+p('M32 45 22 18 51 30M80 30 107 18 96 47Z','#C78D81')+e(64,61,36,35,'#D7AAA0')+eye(49,57)+eye(79,57)+e(64,77,20,13,'#BD887F')+e(57,76,2,3,ink)+e(71,76,2,3,ink)+e(44,110,12,6,'#C78D81')+e(82,110,12,6,'#C78D81');break;
+    case '🐦':art=p('M31 76 12 87 22 59Z',blue)+e(64,73,32,24,blue)+e(80,48,23,24,blue)+p('M99 47 120 55 99 59Z',gold)+e(61,76,20,13,'#B5C6AB')+eye(86,44)+line('M53 96v13m0-1h-8m29-12v13m0-1h8',brown,3);break;
+    case '🐴':art=e(57,85,36,22,brown)+p('M76 92 72 42 83 28 104 50 103 69 87 67 94 94Z',brown)+p('M76 40 66 47 68 81 77 84Z','#73674F')+p('M86 33 81 13 90 12 95 37Z',brown)+eye(95,47)+p('M30 100v14h12l5-14M72 101v13h12l4-16',brown)+line('M23 79q-15-9-13 8',brown,5);break;
+    case '🐛':art=e(31,86,14,17,leaf)+e(52,82,16,19,leaf)+e(76,76,17,22,leaf)+e(96,61,21,24,leaf)+eye(89,56)+eye(103,56)+line('M85 36 80 24M102 36l8-14')+line('M89 70q8 7 14-1');break;
+    case '🦋':art=p('M61 57Q15 2 12 43Q11 67 49 72Q9 62 21 97Q38 123 63 78Z',blue)+p('M67 57Q113 2 116 43Q117 67 79 72Q119 62 107 97Q90 123 65 78Z',blue)+e(32,44,9,14,'#BDD1B5')+e(97,44,9,14,'#BDD1B5')+e(64,69,5,29,brown)+line('M62 42q-12-20-18-10M66 42q12-20 18-10');break;
+    case '🦞':art=e(66,70,17,33,red)+p('M52 90 44 110 67 116 87 109 79 89Z',red)+line('M49 65 29 75l-9 16m28-14-20 12-8 14m64-38 18 11 9 16M84 80l18 10 8 13',red,5)+p('M48 53 26 43Q3 39 15 16L24 28 29 10Q50 21 38 39L58 47Z',red)+p('M84 53 103 43Q126 39 114 16L104 28 100 10Q79 21 91 39L75 47Z',red)+eye(59,42)+eye(73,42)+line('M59 37 44 18M73 37 85 18');break;
+    case '👦':case '👧':art=box(31,88,66,28,15,blue)+(symbol==='👧'?e(31,59,15,36,brown)+e(97,59,15,36,brown):'')+e(64,57,32,36,'#DEC19D')+p('M32 48Q27 9 65 14Q104 9 99 48L79 32 63 42 50 30Z',brown)+eye(52,58)+eye(77,58)+line('M56 75q8 7 17 0')+line('M64 93v18',cream,3);break;
+    case '⭐':art=p('M64 12 79 44 115 49 89 75 95 112 64 96 33 112 39 75 13 49 49 44Z',gold)+line('M57 32 51 52 28 56',cream,4);break;
+    case '🍎':art=p('M64 38Q91 19 107 46Q123 80 90 108Q76 120 64 111Q49 122 31 105Q6 76 21 47Q35 20 64 38Z',red)+stem()+line('M33 49Q25 60 27 72','#E6B59B',5);break;
+    case '🍐':art=p('M53 25Q67 11 77 27Q81 55 101 72Q123 103 85 117H43Q5 106 27 76Q48 55 53 25Z',leaf)+stem(64,24)+line('M42 77Q31 90 37 100','#D7E2AF',4);break;
+    case '🍋':art=p('M15 61Q17 32 51 25Q83 14 103 43L118 47 113 59Q112 87 83 101Q51 118 25 87L12 81Z',gold)+line('M36 40q22-14 41-7',cream,5)+leafShape(94,36,-70);break;
+    case '🍊':art=e(64,73,44,42,'#D7A45C')+stem(64,31)+line('M34 59q-7 14-2 27','#F0D697',4);break;
+    case '🍓':art=p('M24 43Q10 64 63 118Q114 72 104 44Q69 19 24 43Z',red)+p('M23 34 45 36 46 19 64 32 83 17 83 36 108 30 93 48 63 42 34 50Z',leaf)+[ [42,62],[65,56],[83,65],[54,79],[74,84],[64,100] ].map(([x,y])=>e(x,y,1.8,3,cream)).join('');break;
+    case '🍌':art=p('M27 15Q29 88 104 65L114 57Q114 85 88 104Q32 137 15 67Q9 38 19 17Z',gold)+line('M23 37q1 59 64 53',cream,5)+p('M20 14 30 18 27 29 17 25Z',brown)+p('M107 56 118 58 116 68 107 68Z',brown);break;
+    case '🍇':art=stem(69,24)+[[45,44],[69,42],[87,53],[35,66],[59,64],[80,76],[48,89],[65,106]].map(([x,y])=>e(x,y,15,16,'#9C8DA6')).join('');break;
+    case '🍆':art=p('M81 32Q101 67 70 99Q44 120 18 100Q54 93 55 70Q54 41 81 32Z','#8F82A1')+p('M53 36 72 30 73 14 84 24 102 21 92 38 104 49 81 44 68 55 68 39Z',leaf)+line('M72 50q14 28-10 44','#BCA9BD',4);break;
+    case '🥦':art=p('M48 52 58 93 40 115 89 115 74 89 87 52Z',leaf)+e(37,49,24,23,'#648A62')+e(65,32,26,24,'#648A62')+e(94,51,23,24,'#648A62')+e(62,58,25,23,'#74996B');break;
+    case '🥕':art=p('M82 29Q112 44 90 65L28 119 48 41Q59 19 82 29Z','#CF9560')+line('M57 52 71 58M48 74 60 80M41 93l8 4',brown,2)+p('M85 31Q66 5 81 4L94 26Q103-3 116 10L102 36Z',leaf);break;
+    case '🍉':art=p('M13 42H115Q111 120 63 120Q18 118 13 42Z',leaf)+p('M23 43H105Q99 107 64 109Q32 107 23 43Z',cream)+p('M31 43H98Q91 99 64 99Q41 97 31 43Z',red)+[[45,57],[70,55],[86,60],[58,77],[77,83]].map(([x,y])=>e(x,y,2,4,ink)).join('');break;
+    case '🌽':art=e(65,56,23,45,gold)+Array.from({length:6},(_,r)=>[54,65,76].map(x=>box(x-3,22+r*11,7,8,3,'#E7C471')).join('')).join('')+p('M62 111Q18 96 14 48Q48 61 62 111M66 112Q116 90 117 43Q74 72 66 112Z',leaf);break;
+    case '🌸':case '🌼':art=Array.from({length:6},(_,i)=>{const a=i*Math.PI/3;return e(64+Math.cos(a)*28,61+Math.sin(a)*28,16,20,symbol==='🌸'?'#D2A4A3':gold,`transform="rotate(${i*60+90} ${64+Math.cos(a)*28} ${61+Math.sin(a)*28})"`);}).join('')+e(64,61,17,17,'#C49D4E');break;
+    case '🌿':case '🍃':case '🍀':art=line('M33 116Q72 75 81 16',brown,4)+leafShape(77,46)+leafShape(63,72,175)+leafShape(51,95)+ (symbol==='🍀'?leafShape(66,58,70)+leafShape(66,58,-70):'');break;
+    case '🌳':art=p('M57 57 52 118H77L69 57Z',brown)+e(39,59,28,28,leaf)+e(85,56,28,29,leaf)+e(65,34,30,29,leaf)+line('M64 102V61m0 17L48 64m16 8 18-18',brown,3);break;
+    case '🍄':art=p('M54 52 48 112Q65 122 82 112L74 53Z',cream)+p('M11 61Q20 3 65 12Q107 16 118 61Q71 81 11 61Z',red)+e(40,43,8,6,cream)+e(75,31,9,6,cream)+e(96,51,7,5,cream);break;
+    case '🐚':art=p('M64 115 14 56Q6 28 30 29Q38 7 57 19Q71 2 88 19Q113 16 111 42Q136 50 111 77L75 117Z','#DBBCA3')+line('M64 106 31 39M68 103 57 24M72 103 84 25M76 109 108 51','#A1896E',3)+box(55,106,26,10,5,cream);break;
+    case '🎈':art=e(63,43,33,37,red)+p('M59 80 55 90H72L66 80Z',red)+line('M64 90q20 13 0 22t6 12',brown,2)+line('M40 29q-8 12-3 24','#E5B5A0',4);break;
+    case '🍬':art=p('M36 48 7 27 12 64 7 97 36 81M92 48 121 28 116 65 121 98 92 81Z',red)+box(28,40,72,49,19,gold)+p('M50 41 74 41 62 88 38 88Z',cream);break;
+    case '🍪':art=e(64,64,47,47,'#D4AE73')+[[43,37],[75,34],[88,60],[66,75],[38,83],[75,96],[28,58]].map(([x,y])=>e(x,y,5,4,brown)).join('')+line('M36 30q16-8 27-7',cream,3);break;
+    case '🎂':art=box(18,54,92,56,10,'#D8B28F')+box(18,53,92,18,8,cream)+line('M24 90h80',red,10)+[42,65,88].map(x=>box(x,25,4,27,2,blue)+p(`M${x+2} 22q-12-10 1-18 10 11-1 18`,gold)).join('');break;
+    case '🍦':art=p('M39 64 63 119 88 64Z','#CDAC75')+line('M49 80 73 98M57 74 79 88M54 100l18-28M62 114l17-29',cream,2)+p('M27 65Q21 47 43 44Q34 23 60 24Q59 5 77 12Q91 19 85 37Q109 38 103 61Z','#EAE1C7');break;
+    case '🥚':art=p('M65 15Q86 14 106 68Q124 118 64 118Q6 118 24 70Q39 21 65 15Z',cream)+line('M44 36q-12 18-13 34','#FFFFFF',5);break;
+    case '🍞':art=p('M29 45Q9 26 28 14Q51 3 65 13Q88 1 108 20Q120 37 100 45L99 112H30Z','#BA956A')+p('M38 48Q21 34 38 24Q53 14 66 23Q82 14 98 27Q108 38 91 48V103H38Z','#E3CAA0');break;
+    case '🍚':case '🍜':art=e(64,57,48,15,cream)+(symbol==='🍚'?Array.from({length:6},(_,i)=>e(32+i*13,49+(i%2)*5,9,5,'#F6EBD3')).join(''):line('M30 49q10-12 20 0t20 0t24 0M30 58q14-12 28 0t34 0',gold,4))+p('M16 58Q20 107 64 110Q106 105 112 58Z',blue)+line('M25 71q39 17 78 0',cream,3)+(symbol==='🍜'?line('M78 45 101 9M84 46l23-35',brown,4):'');break;
+    case '🥛':case '🥤':art=p('M34 20H96L89 114H43Z',symbol==='🥛'?'#DCE5D9':blue)+p('M39 48H91L85 109H46Z',symbol==='🥛'?cream:'#D5B080')+line('M47 28 51 97','#FFFBED',4)+(symbol==='🥤'?line('M69 62 78 12h22',red,5):'');break;
+    case '🌞':art=spokes(64,64,39,gold,5)+e(64,64,30,30,gold)+line('M48 45q7-5 14-6',cream,4);break;
+    case '🌙':art=p('M90 15Q51 40 76 79Q92 97 113 90Q86 127 43 103Q3 74 28 32Q51-2 90 15Z',gold)+e(44,69,5,6,'#C29A4B')+e(66,91,7,5,'#C29A4B');break;
+    case '☁️':art=cloud();break;
+    case '🌧️':art=cloud(64,39)+[31,61,91].map(x=>line(`M${x} 81l-7 19M${x+5} 108l-5 10`,blue,4)).join('');break;
+    case '❄️':art=Array.from({length:6},(_,i)=>{const a=i*Math.PI/3,x=64+Math.cos(a)*45,y=64+Math.sin(a)*45;return line(`M64 64L${x} ${y}`,blue,4)+`<g transform="rotate(${i*60} 64 64)">${line('M92 52 98 64 92 76',blue,3)}</g>`;}).join('');break;
+    case '⚡':art=p('M72 7 26 70 59 70 49 122 106 49 72 49 86 7Z',gold);break;
+    case '🌈':art=[red,'#D19C65',gold,leaf,blue,'#7D8DA5','#9E8EAA'].map((c,i)=>`<path d="M${13+i*7} 106V72a${51-i*7} ${51-i*7} 0 0 1 ${102-i*14} 0v34" fill="none" stroke="${c}" stroke-width="7.5"/>`).join('');break;
+    case '🔥':art=p('M69 8Q80 40 98 52Q129 102 80 120Q20 136 19 84Q18 64 41 41L44 69Q68 44 69 8Z',red)+p('M65 54Q60 85 83 91Q91 114 62 116Q38 110 45 89Z',gold);break;
+    case '💧':art=p('M64 8Q51 36 29 63Q0 103 44 119Q94 137 107 91Q111 66 64 8Z',blue)+line('M37 76q-7 19 8 26','#DFEEE1',5);break;
+    case '⛰️':art=p('M5 112 48 26 74 72 91 44 124 112Z','#9FAE98')+p('M30 62 48 26 67 60 53 55 46 67 41 56Z',cream)+p('M77 69 91 44 104 71 91 66Z',cream);break;
+    case '🪨':art=p('M20 96 13 69 30 34 70 19 108 42 118 88 94 113 47 118Z','#A9B2A3')+line('M30 34 49 56 13 69M49 56l21-37M49 56l39 13 20-27M88 69l6 44','#CAD1BE',3);break;
+    case '🟫':art=p('M14 68 53 35 111 44 121 95 77 116 17 105Z',brown)+p('M14 68 69 78 111 44 53 35Z','#B69A6A')+line('M30 87h15m27 9h15M50 52h13','#D8C6A1',4);break;
+    case '🪵':art=p('M22 85 75 24Q96 20 113 40Q128 57 109 73L54 116Z',brown)+e(36,98,22,20,'#D6BC91')+e(36,98,12,11,'#D6BC91')+line('M62 89 103 44M51 71l24-30',cream,3);break;
+    case '✋':art=p('M39 115 24 83 11 58Q10 47 20 50L35 64V28Q35 15 44 21L49 56V12Q54 2 60 12L62 54 66 11Q74 5 78 16L77 56 85 24Q96 21 95 34L93 78Q98 110 80 119Z','#DDC1A0')+line('M47 76q21-11 37 4',brown,2);break;
+    case '🚗':case '🚌':art=box(13,symbol==='🚌'?25:50,102,symbol==='🚌'?73:48,12,red)+(symbol==='🚗'?p('M31 50 44 24H81L102 50Z',red):'')+box(38,32,23,22,3,'#C8DED5')+box(66,32,23,22,3,'#C8DED5')+e(35,100,14,14,ink)+e(94,100,14,14,ink)+e(35,100,6,6,cream)+e(94,100,6,6,cream)+box(16,70,12,7,3,gold)+line('M49 69h10',cream,2);break;
+    case '🚂':art=box(22,57,83,42,8,leaf)+box(67,23,40,58,6,leaf)+box(76,32,20,23,3,'#CEE0D5')+box(28,29,13,29,2,brown)+box(24,26,21,7,2,brown)+[37,64,93].map(x=>e(x,103,13,13,ink)+e(x,103,5,5,cream)).join('')+cloud(34,6);break;
+    case '✈️':art=p('M64 6Q75 6 73 45L119 81 113 91 74 77 74 104 89 116 84 121 64 113 44 121 39 116 54 104 54 77 15 91 9 81 55 45Q53 6 64 6Z','#BCCEC2')+line('M63 18v76',cream,4);break;
+    case '⛵':art=p('M9 92H119L99 113H32Z',brown)+line('M65 12v81',ink,3)+p('M59 22 16 83H59Z',cream)+p('M71 27 109 77H71Z',red)+line('M7 122q14-9 28 0t28 0t28 0t28 0',blue,3);break;
+    case '🚲':art=e(28,90,24,24,'#DCE2D0')+e(100,90,24,24,'#DCE2D0')+line('M28 90 53 47 74 90H28m46 0 18-49 8 49M45 45h20m22-5h14V28',red,5)+line('M28 90 53 47 74 90M74 90l26 0',red,3);break;
+    case '🏠':art=p('M22 55 63 16 109 54V116H22Z',cream)+p('M10 58 64 9 119 58 109 66 64 26 20 67Z',red)+box(53,76,22,40,2,brown)+box(30,63,16,17,2,blue)+box(84,63,16,17,2,blue);break;
+    case '🚪':art=box(26,8,78,112,3,brown)+p('M37 18 91 26V113L37 103Z','#D9BA87')+e(80,72,3,3,gold);break;
+    case '💡':art=e(64,48,35,37,gold)+p('M49 76H79L76 106H52Z','#B5B9A6')+line('M51 92h27m-24 9h22M56 76l-6-24 14 9 14-9-7 24',ink,2)+line('M59 117h11',brown,4);break;
+    case '📖':art=p('M8 27Q39 14 64 33Q87 15 120 27V106Q88 97 64 114Q38 99 8 108Z',cream)+line('M64 34v78',brown,2)+line('M20 43q16-4 30 3m-30 13q16-4 30 3m-30 13q16-4 30 3m28-34q15-6 29-3m-29 18q15-6 29-3m-29 18q15-6 29-3','#A4AD8B',3);break;
+    case '✏️':art=p('M20 92 85 15 111 37 45 112 11 121Z',gold)+p('M11 121 20 92 45 112Z','#D6BC90')+p('M11 121 15 108 25 117Z',ink)+p('M85 15 97 2 123 24 111 37Z',red)+line('M31 92 93 23',cream,4);break;
+    case '☂️':art=p('M8 63Q13 8 63 13Q113 9 120 63Q105 51 92 63Q77 51 63 63Q47 51 34 63Q21 51 8 63Z',red)+line('M63 63v43q0 19-17 10',brown,4)+line('M63 14q-27 17-29 46m29-46q28 15 29 46',cream,2);break;
+    case '🎒':art=box(25,31,79,86,17,blue)+line('M46 31v-9q19-23 38 0v9',brown,8)+box(35,68,58,40,10,'#A8B9A1')+line('M42 79h44',cream,2)+box(29,44,71,10,4,brown);break;
+    case '⏰':art=e(64,67,43,43,'#CAB386')+e(64,67,33,33,cream)+line('M64 44v24l21 11',ink,4)+line('M37 105 29 120M93 105l8 15',brown,5)+e(29,23,19,9,red,'transform="rotate(-30 29 23)"')+e(99,23,19,9,red,'transform="rotate(30 99 23)"');break;
+    case '⚽':art=e(64,64,49,49,'#F0EBD7')+p('M48 44 74 38 89 59 76 81 49 77 39 59Z',ink)+line('M48 44 38 24M74 38 86 23M89 59 111 63M76 81 89 106M49 77 32 99M39 59 17 59',ink,3);break;
+    case '👕':art=p('M44 15Q63 33 82 15L118 40 99 64 87 55V115H37V55L25 64 9 40Z',blue)+line('M50 19q12 20 28 0',cream,3);break;
+    case '👗':art=p('M44 12H56Q64 30 73 12H84L82 39 69 53 109 116H18L58 53 44 39Z',red)+line('M52 53h23',cream,6);break;
+    case '🧦':art=p('M55 10H94V73Q113 92 88 107L38 121Q4 119 13 96L54 74Z',red)+line('M57 27h35M42 96l13 18',cream,7);break;
+    case '🧤':art=p('M46 113 34 83 17 61Q13 48 25 49L42 62V25Q47 8 55 24L58 49 58 11Q66 2 70 14L71 47 77 15Q87 9 88 21L83 51 94 31Q106 29 103 44L94 91 86 113Z',leaf)+box(43,104,47,17,3,brown);break;
+    case '👟':art=p('M24 26 56 29 66 65 113 83Q126 93 118 113H12L14 78Z',blue)+p('M12 103H121V116H11Z',cream)+line('M53 63 77 69M55 73l26 6M23 54l23 6',cream,4);break;
+    case '🧢':art=p('M24 76Q21 18 71 17Q110 19 112 78Z',blue)+p('M20 76Q59 60 109 78L124 96Q104 110 78 97L42 88 14 87Z','#A2B6A1')+line('M70 18q-23 16-19 50',cream,2);break;
+    case '🔴':art=e(64,64,45,45,red)+line('M37 43q10-12 21-12',cream,4);break;
+    case '🔷':art=p('M64 10 115 64 64 118 13 64Z',blue)+line('M29 64 64 26',cream,4);break;
+    default:throw new Error('学习插画缺少题库图形：'+symbol);
+  }
+  return '<svg class="learning-art" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs>'+defs.join('')+'</defs><ellipse cx="66" cy="120" rx="43" ry="5" fill="#284B40" opacity=".10"/>'+art+'</svg>';
+}
+function paintLearningArt(element,symbol) {
+  element.innerHTML=learningArt(symbol);
+  const label = LITERACY_WORDS.find(x=>x.emoji===symbol)?.text
+    || SOUND_ANIMALS.find(x=>x.emoji===symbol)?.name
+    || COUNT_THEMES.find(x=>x.itemEmoji===symbol)?.itemName
+    || STORY_OBJS.find(x=>x.emoji===symbol)?.name;
+  if(label) element.setAttribute('aria-label',label);
+  element.setAttribute('data-learning-symbol',symbol);
+}
+
+function initGarden() {
+  // 保留同步入口要求的原始body标记，实际页面根节点在初始化时声明会话表面。
+  document.body.className='game-screen';
+  document.body.dataset.scene='home';
+  document.body.dataset.state='menu';
+  for (const [id,kind] of [['btn-home','home'],['btn-medals','medal'],['btn-parent','parent'],['btn-voice','voice'],['btn-pause','pause']]) $('#'+id).innerHTML=uiIcon(kind);
+  $('#hero-art').innerHTML=sceneArt('guide');
+  $('#coach-art').innerHTML=animalArt('小狐狸');
+  document.querySelectorAll('.menu-card').forEach(card=>{
+    const art=card.querySelector('.menu-scene');
+    if(art)art.innerHTML=sceneArt(card.dataset.scene);
+  });
+  renderGardenSummary();
+}
+
 /* ================= 初始化与事件绑定 ================= */
+/* 桌面加减法舞台：先按页面剩余高度定出上限，再在不溢出的前提下取最大放大倍数，
+   舞台高度收到内容加上下各 70px，上下左右空带都不超过 80px，数字键留在首屏内 */
+function fitAddZoom() {
+  if (typeof window === 'undefined' || !window.matchMedia || !document.querySelector) return;
+  const st = document.querySelector('#count-stage');
+  if (!st || !st.classList || !st.classList.contains('add-mode')) return;
+  if (!window.matchMedia('(min-width:1000px) and (min-height:620px)').matches) {
+    st.style.removeProperty('--add-zoom'); st.style.removeProperty('--add-h'); return;
+  }
+  const choices = document.querySelector('#count-choices');
+  const actions = document.querySelector('#screen-counting .scene-actions');
+  st.style.removeProperty('--add-h');
+  const below = (choices ? choices.offsetHeight + 16 : 0) + (actions ? actions.offsetHeight : 0);
+  const avail = window.innerHeight - st.getBoundingClientRect().top - below - 20;
+  const cs = getComputedStyle(st);
+  const padY = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
+  const maxH = avail - padY - 40;
+  const maxW = st.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) - 6;
+  const gap = parseFloat(cs.rowGap) || 0;
+  let best = 2, bestH = 0;
+  for (let z = 6; z >= 2; z -= 0.1) {
+    st.style.setProperty('--add-zoom', z.toFixed(2));
+    let h = 0, w = 0;
+    const kids = Array.from(st.children);
+    kids.forEach(k => { const r = k.getBoundingClientRect(); h += r.height; w = Math.max(w, r.width); });
+    h += Math.max(0, kids.length - 1) * gap;
+    best = z; bestH = h;
+    if (h <= maxH && w <= maxW) break;
+  }
+  st.style.setProperty('--add-zoom', best.toFixed(2));
+  st.style.setProperty('--add-h', Math.round(Math.min(avail, bestH + padY + 150)) + 'px');
+}
+function initAddZoomFit() {
+  if (typeof MutationObserver === 'undefined' || typeof window === 'undefined') return;
+  const st = document.querySelector('#count-stage');
+  if (!st) return;
+  let queued = false;
+  const run = () => { if (queued) return; queued = true; requestAnimationFrame(() => { queued = false; fitAddZoom(); }); };
+  new MutationObserver(run).observe(st, { childList: true });
+  window.addEventListener('resize', run);
+}
+
 function init() {
   loadStars();
   Progress.load();
   Speech.init();
+  initGarden();
+  fillGlyphs();
+  initAddZoomFit();
   if (document.body.dataset.collection === 'true') $('#collection-return').classList.remove('hidden');
   $('#voice-rate').addEventListener('input', e => { Speech.setRate(e.target.value); updateVoiceRate(); });
   document.querySelectorAll('[data-voice-rate]').forEach(button => button.addEventListener('click', () => {
@@ -3073,11 +3955,13 @@ function init() {
   $('#btn-voice-stop').addEventListener('click', () => { stopSpeak(); voiceStatus('已停止试听'); });
   window.addEventListener('pagehide', () => {
     Speech.suspended = true;
+    clearTimeout(wiggleTimer); wiggleTimer = null;
     pauseLearningTimers();
     stopSpeak();
   });
   window.addEventListener('pageshow', () => {
     Speech.suspended = false;
+    scheduleWiggle();
     resumeLearningTimers();
   });
   document.addEventListener('visibilitychange', () => {
@@ -3112,6 +3996,13 @@ function init() {
     showScreen('home');
   });
 
+  $('#btn-journal').addEventListener('click', () => { Sfx.pop(); showScreen('journal'); renderJournal(); });
+  $('#btn-journal-home').addEventListener('click', () => { Sfx.pop(); showScreen('home'); });
+  $('#btn-pause').addEventListener('click', () => learningPaused ? closeLearningPause() : openLearningPause());
+  $('#btn-resume').addEventListener('click', closeLearningPause);
+  $('#btn-restart').addEventListener('click', () => { closeLearningPause(); restartLearning(); });
+  $('#btn-pause-home').addEventListener('click', () => { closeLearningPause(); showScreen('home'); });
+
   /* 音色面板 */
   $('#btn-voice').addEventListener('click', () => { Sfx.pop(); openVoicePanel(); });
   $('#btn-voice-close').addEventListener('click', () => { Sfx.pop(); closeVoicePanel(); });
@@ -3142,7 +4033,7 @@ function init() {
       loadStars();
       Progress.load();
       renderParentList();
-      btn.textContent = '已清空 ✓';
+      btn.textContent = '已清空';
       setTimeout(() => { btn.textContent = '清空记录和星星'; }, 2000);
     }
   });
@@ -3168,6 +4059,8 @@ function init() {
   $('#logic-text').addEventListener('click', () => { if (logicPrompt) speak(logicPrompt); });
   ['#count-display', '#cmd-text', '#lit-text', '#logic-text'].forEach(sel => {
     $(sel).setAttribute('role', 'button');
+    $(sel).setAttribute('tabindex', '0');
+    $(sel).addEventListener('keydown', e => { if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); $(sel).click(); } });
     $(sel).setAttribute('aria-label', '再听一遍题目');
   });
 
