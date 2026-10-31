@@ -1325,6 +1325,14 @@
     .count-choices { gap:18px; padding-top:12px; }
     .num-btn { width:100px; height:88px; font-size:44px; border-radius:22px; }
   }
+  /* 桌面（宽 ≥900）：所有可读文字不小于 14px，放在全部样式之后。手机（宽 <900）字号不变 */
+  @media (min-width:900px) {
+    small, .eyebrow, .section-label, .subtitle, .menu-desc, .collection-return,
+    .garden-summary strong, .garden-summary small, .garden-summary .journal-count,
+    .habitat-tab, .animal-name, .cmd-label, .bubble, .garden-stamp, .chapter-number,
+    .journal-chapter p, .parent-row .parent-stats, .voice-rec, .voice-item .voice-lang,
+    .voice-presets button, .voice-preview button, #voice-status, .voice-help { font-size:14px; }
+  }
 </style>
 </head>
 <body data-collection="true">
