@@ -1636,6 +1636,7 @@ const Speech = {
 const Recorded = {
   clips: null,
   audio: null,
+  loaded: new Map(),
   chosen: true,
   playing: false,
   timer: null,
@@ -1687,17 +1688,35 @@ const Recorded = {
       this.audio.pause();
     }
   },
+  url(c) { return 'voice/' + c.id + '.mp3'; },
+  /* 录音先读进内存再播放。播放器直接读网址时每段都要等网络，段间停顿会拉长到一秒左右。 */
+  load(c) {
+    if (!this.loaded.has(c.id)) {
+      this.loaded.set(c.id, fetch(this.url(c))
+        .then(r => { if (!r.ok) throw new Error('voice ' + r.status); return r.arrayBuffer(); })
+        .then(data => URL.createObjectURL(new Blob([data], { type: 'audio/mpeg' })))
+        .catch(e => { this.loaded.delete(c.id); throw e; }));
+    }
+    return this.loaded.get(c.id);
+  },
   play(plan, token, opts, fallback) {
     const audio = this.audio;
     const rate = (opts.rate != null ? opts.rate : Speech.rate) / this.BASE_RATE;
-    const url = c => 'voice/' + c.id + '.mp3';
     const fail = i => {
       if (token !== speakToken) return;
       this.stop();
       fallback(plan.slice(i).map(c => c.text).join(''));
     };
-    const next = i => {
+    const start = (i, src) => {
       if (token !== speakToken) return;
+      /* 放不了内存里的录音时改读网址，还不行才用设备声音。播放器报错和播放被拒可能同时发生，只处理一次。 */
+      let failed = false;
+      const retry = () => {
+        if (failed) return;
+        failed = true;
+        if (src === this.url(plan[i])) fail(i);
+        else start(i, this.url(plan[i]));
+      };
       audio.onended = () => {
         audio.onended = audio.onerror = null;
         if (token !== speakToken) return;
@@ -1708,17 +1727,21 @@ const Recorded = {
           voiceStatus(opts.preview ? '试听结束，可以换个声音比较。' : '');
         }
       };
-      audio.onerror = () => fail(i);
-      audio.src = url(plan[i]);
+      audio.onerror = retry;
+      audio.src = src;
       audio.defaultPlaybackRate = rate;
       audio.playbackRate = rate;
       audio.play().then(() => {
         if (token === speakToken) voiceStatus(opts.preview ? '正在试听' : '正在朗读');
-      }).catch(e => { if (!e || e.name !== 'AbortError') fail(i); });
+      }).catch(e => { if (!e || e.name !== 'AbortError') retry(); });
+    };
+    const next = i => {
+      if (token !== speakToken) return;
+      this.load(plan[i]).then(src => start(i, src)).catch(() => fail(i));
     };
     this.playing = true;
-    /* 提前取后面的短语，段间不再等网络。 */
-    plan.slice(1).forEach(c => { fetch(url(c)).catch(() => { /* 轮到它时再读，失败就用设备声音 */ }); });
+    /* 提前读后面的短语，段间不再等网络。 */
+    plan.slice(1).forEach(c => { this.load(c).catch(() => { /* 轮到它时再读，失败就用设备声音 */ }); });
     next(0);
   },
 };
