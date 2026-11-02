@@ -880,6 +880,7 @@
   .voice-preview button { background: #dfeedd; }
   #voice-status { color: #6c5c49; font-size: 12px; line-height: 1.5; min-height: 18px; margin: 7px 0 0; }
   .voice-help { font-size: 12px; color: #6c5c49; line-height: 1.6; margin: 0; flex-shrink: 0; }
+  .voice-note { font-size: 12px; color: #6c5c49; text-align: center; margin: 8px 0 0; position: relative; z-index: 1; }
   #voice-list { flex: 1; min-height: 72px; }
   .voice-item { flex-shrink: 0; min-height: 48px; }
   .voice-item > span:first-child { overflow-wrap: anywhere; }
@@ -1331,7 +1332,7 @@
     .garden-summary strong, .garden-summary small, .garden-summary .journal-count,
     .habitat-tab, .animal-name, .cmd-label, .bubble, .garden-stamp, .chapter-number,
     .journal-chapter p, .parent-row .parent-stats, .voice-rec, .voice-item .voice-lang,
-    .voice-presets button, .voice-preview button, #voice-status, .voice-help { font-size:14px; }
+    .voice-presets button, .voice-preview button, #voice-status, .voice-help, .voice-note { font-size:14px; }
   }
 </style>
 </head>
@@ -1385,6 +1386,7 @@
       </button>
     </div>
     <button id="btn-journal" class="garden-summary"><span class="garden-seal" aria-hidden="true">❧</span><span><strong>我的花园手册</strong><small id="garden-next">每三个发现，点亮一枚足迹</small></span><span id="garden-count" class="journal-count">0 / 24 ↗</span></button>
+    <p class="voice-note">语音由 AI 生成，不是真人录音。</p>
     <div class="garden-ground" aria-hidden="true"></div>
   </section>
 
@@ -1483,7 +1485,7 @@
     <p id="voice-status" role="status" aria-live="polite"></p>
   </div>
   <div id="voice-list"></div>
-  <p class="voice-help">这里使用设备提供的中文声音。可在系统语音设置中下载优质中文音色，再回到这里试听。</p>
+  <p class="voice-help">Alloy 是 OpenAI 模型生成的 AI 声音，不是真人录音。没联网或读不到录音时会改用设备声音。设备声音可在系统语音设置中下载优质中文音色，再回到这里试听。</p>
   <button id="btn-voice-close" class="action-btn">就用这个啦</button>
 </div>
 <div id="confetti-layer"></div>
@@ -1623,7 +1625,102 @@ const Speech = {
     this.rate = Math.round(Math.min(1.25, Math.max(0.75, rate)) * 20) / 20;
     try { localStorage.setItem('kidgame_speech_rate', String(this.rate)); } catch (e) { /* 本次语速仍生效 */ }
   },
-  duration(text) { return Math.max(2600, text.length * 260 * 0.92 / this.rate); },
+  duration(text) {
+    const ms = Recorded.ms(text);
+    return Math.max(2600, ms != null ? ms + 400 : text.length * 260 * 0.92 / this.rate);
+  },
+};
+
+/* 预录语音：OpenAI Alloy 合成的短语，按标点切分后拼接播放，段间留 0.3 秒。
+   一句里有短语没有录音、读不到语音包或播放失败时用设备声音，一句之内不混用两种声音。 */
+const Recorded = {
+  clips: null,
+  audio: null,
+  chosen: true,
+  playing: false,
+  timer: null,
+  GAP: 300,
+  BASE_RATE: 0.95,
+  init() {
+    try { this.chosen = localStorage.getItem('kidgame_voice_mode') !== 'system'; } catch (e) { /* 本次仍用默认声音 */ }
+    if (typeof Audio !== 'function' || typeof fetch !== 'function') return;
+    this.audio = new Audio();
+    /* iOS 要求同一个播放器先在点击里播过一次，之后才能由定时器接着播。 */
+    const unlock = () => {
+      if (this.playing) return;
+      document.removeEventListener('click', unlock, true);
+      document.removeEventListener('touchend', unlock, true);
+      this.audio.src = 'voice/silence.mp3';
+      this.audio.play().catch(() => { /* 播放时还会再试，失败就用设备声音 */ });
+    };
+    document.addEventListener('click', unlock, true);
+    document.addEventListener('touchend', unlock, true);
+    fetch('voice/index.json').then(r => (r.ok ? r.json() : null)).then(data => {
+      this.clips = data && data.clips;
+      const panel = document.querySelector('#voice-panel');
+      if (panel && !panel.classList.contains('hidden')) renderVoiceList();
+    }).catch(() => { /* 读不到语音包时用设备声音 */ });
+  },
+  available() { return !!(this.clips && this.audio); },
+  active() { return this.chosen && this.available(); },
+  choose(on) {
+    this.chosen = on;
+    try { localStorage.setItem('kidgame_voice_mode', on ? 'recorded' : 'system'); } catch (e) { /* 本次选择已生效 */ }
+  },
+  plan(text) {
+    if (!this.active()) return null;
+    const names = (text.match(/[^。！？；，、：]+[。！？；，、：]?/g) || []).map(s => s.trim()).filter(Boolean);
+    const items = names.map(name => this.clips[name]);
+    if (!items.length || !items.every(Boolean)) return null;
+    return items.map((item, i) => ({ id: item[0], ms: item[1], text: names[i] }));
+  },
+  ms(text) {
+    const plan = this.plan(text);
+    if (!plan) return null;
+    return (plan.reduce((sum, c) => sum + c.ms, 0) + this.GAP * (plan.length - 1)) * this.BASE_RATE / Speech.rate;
+  },
+  stop() {
+    clearTimeout(this.timer);
+    this.playing = false;
+    if (this.audio) {
+      this.audio.onended = this.audio.onerror = null;
+      this.audio.pause();
+    }
+  },
+  play(plan, token, opts, fallback) {
+    const audio = this.audio;
+    const rate = (opts.rate != null ? opts.rate : Speech.rate) / this.BASE_RATE;
+    const url = c => 'voice/' + c.id + '.mp3';
+    const fail = i => {
+      if (token !== speakToken) return;
+      this.stop();
+      fallback(plan.slice(i).map(c => c.text).join(''));
+    };
+    const next = i => {
+      if (token !== speakToken) return;
+      audio.onended = () => {
+        audio.onended = audio.onerror = null;
+        if (token !== speakToken) return;
+        if (i + 1 < plan.length) {
+          this.timer = setTimeout(() => next(i + 1), this.GAP / rate);
+        } else {
+          this.playing = false;
+          voiceStatus(opts.preview ? '试听结束，可以换个声音比较。' : '');
+        }
+      };
+      audio.onerror = () => fail(i);
+      audio.src = url(plan[i]);
+      audio.defaultPlaybackRate = rate;
+      audio.playbackRate = rate;
+      audio.play().then(() => {
+        if (token === speakToken) voiceStatus(opts.preview ? '正在试听' : '正在朗读');
+      }).catch(e => { if (!e || e.name !== 'AbortError') fail(i); });
+    };
+    this.playing = true;
+    /* 提前取后面的短语，段间不再等网络。 */
+    plan.slice(1).forEach(c => { fetch(url(c)).catch(() => { /* 轮到它时再读，失败就用设备声音 */ }); });
+    next(0);
+  },
 };
 
 let speakToken = 0;
@@ -1677,44 +1774,53 @@ function speak(text, opts) {
     sceneGreeting = '';
   }
   if (!opts.noBubble) showBubble(text);
+  const token = ++speakToken;
+  Recorded.stop();
+  if (Speech.enabled) {
+    try { speechSynthesis.cancel(); } catch (e) { /* 仍尝试播放本条 */ }
+  }
+  Speech.utterances = [];
+  setTimeout(() => {
+    if (token !== speakToken || Speech.suspended || document.hidden) return;
+    const plan = Recorded.plan(text);
+    if (plan) Recorded.play(plan, token, opts, rest => speakWithDevice(rest, token, opts));
+    else speakWithDevice(text, token, opts);
+  }, 60);
+}
+function speakWithDevice(text, token, opts) {
   if (!Speech.enabled) {
     voiceStatus('当前浏览器不支持朗读，可继续看文字和玩游戏。');
     return;
   }
-  const token = ++speakToken;
-  try { speechSynthesis.cancel(); } catch (e) { /* 仍尝试播放本条 */ }
-  Speech.utterances = [];
-  setTimeout(() => {
-    if (token !== speakToken || Speech.suspended || document.hidden) return;
-    try {
-      const parts = splitSentences(text);
-      Speech.utterances = parts.map((part, index) => {
-        const u = new SpeechSynthesisUtterance(part);
-        u.lang = Speech.voice?.lang || 'zh-CN';
-        u.rate = opts.rate != null ? opts.rate : Speech.rate;
-        u.pitch = opts.pitch != null ? opts.pitch : 1;
-        if (Speech.voice) u.voice = Speech.voice;
-        u.onstart = () => { if (token === speakToken) voiceStatus(opts.preview ? '正在试听' : '正在朗读'); };
-        u.onend = () => {
-          if (token === speakToken && index === parts.length - 1) {
-            Speech.utterances = [];
-            voiceStatus(opts.preview ? '试听结束，可以换个声音比较。' : '');
-          }
-        };
-        u.onerror = (event) => {
-          if (token !== speakToken || event.error === 'canceled' || event.error === 'interrupted') return;
-          stopSpeak();
-          voiceStatus('没有播放成功，请换个声音或再次点击试听。');
-        };
-        return u;
-      });
-      Speech.utterances.forEach(u => speechSynthesis.speak(u));
-    } catch (e) { voiceStatus('当前声音未能播放，请选择其他音色。'); }
-  }, 60);
+  try {
+    const parts = splitSentences(text);
+    Speech.utterances = parts.map((part, index) => {
+      const u = new SpeechSynthesisUtterance(part);
+      u.lang = Speech.voice?.lang || 'zh-CN';
+      u.rate = opts.rate != null ? opts.rate : Speech.rate;
+      u.pitch = opts.pitch != null ? opts.pitch : 1;
+      if (Speech.voice) u.voice = Speech.voice;
+      u.onstart = () => { if (token === speakToken) voiceStatus(opts.preview ? '正在试听' : '正在朗读'); };
+      u.onend = () => {
+        if (token === speakToken && index === parts.length - 1) {
+          Speech.utterances = [];
+          voiceStatus(opts.preview ? '试听结束，可以换个声音比较。' : '');
+        }
+      };
+      u.onerror = (event) => {
+        if (token !== speakToken || event.error === 'canceled' || event.error === 'interrupted') return;
+        stopSpeak();
+        voiceStatus('没有播放成功，请换个声音或再次点击试听。');
+      };
+      return u;
+    });
+    Speech.utterances.forEach(u => speechSynthesis.speak(u));
+  } catch (e) { voiceStatus('当前声音未能播放，请选择其他音色。'); }
 }
 function stopSpeak() {
   voiceStatus('');
   speakToken++;
+  Recorded.stop();
   Speech.utterances = [];
   if (Speech.enabled) {
     try { speechSynthesis.cancel(); } catch (e) { /* 页面仍保留题目文字 */ }
@@ -2294,7 +2400,8 @@ function clearCrossTimer() { crossTimer.clear(); }
    须在 countPrompt 赋值之后调用 */
 function scheduleCross(items, actionWord) {
   const idx = countPrompt.indexOf(actionWord);
-  const delay = (Speech.enabled && idx > 0) ? Math.min(400 + idx * 250, 5000) * 0.92 / Speech.rate : 900;
+  const perChar = Recorded.active() ? 340 : 250;
+  const delay = (Speech.enabled && idx > 0) ? Math.min(400 + idx * perChar, 5000) * 0.92 / Speech.rate : 900;
   const step = (i) => {
     if (countAnswered || i >= items.length) {
       /* 已作答则立即补齐剩余划掉，保证画面与讲解一致 */
@@ -3459,21 +3566,46 @@ function enterLogic() {
 function renderVoiceList() {
   const list = $('#voice-list');
   list.innerHTML = '';
+  if (Recorded.available()) {
+    const btn = document.createElement('button');
+    btn.className = 'voice-item' + (Recorded.chosen ? ' active' : '');
+    const name = document.createElement('span');
+    name.textContent = 'Alloy';
+    const rec = document.createElement('span');
+    rec.className = 'voice-rec';
+    rec.textContent = '推荐';
+    name.appendChild(rec);
+    const lang = document.createElement('span');
+    lang.className = 'voice-lang';
+    lang.textContent = 'AI 生成\n联网读取';
+    btn.setAttribute('aria-pressed', String(Recorded.chosen));
+    btn.appendChild(name);
+    btn.appendChild(lang);
+    btn.addEventListener('click', () => {
+      Recorded.choose(true);
+      renderVoiceList();
+      previewVoice();
+    });
+    list.appendChild(btn);
+  }
   if (!Speech.enabled || !Speech.zhVoices.length) {
     const empty = document.createElement('div');
     empty.className = 'voice-empty';
-    empty.textContent = Speech.enabled
-      ? '没有找到中文语音。在系统设置里下载中文语音后，这里就能选啦。'
-      : '这台设备不支持语音朗读，游戏会用文字气泡代替。';
+    empty.textContent = Recorded.available()
+      ? '这台设备没有其他中文声音可选。'
+      : Speech.enabled
+        ? '没有找到中文语音。在系统设置里下载中文语音后，这里就能选啦。'
+        : '这台设备不支持语音朗读，游戏会用文字气泡代替。';
     list.appendChild(empty);
     return;
   }
   Speech.zhVoices.forEach((v, i) => {
+    const selected = !Recorded.active() && Speech.voice?.voiceURI === v.voiceURI;
     const btn = document.createElement('button');
-    btn.className = 'voice-item' + (Speech.voice && Speech.voice.voiceURI === v.voiceURI ? ' active' : '');
+    btn.className = 'voice-item' + (selected ? ' active' : '');
     const name = document.createElement('span');
     name.textContent = v.name;
-    if (i === 0) {
+    if (i === 0 && !Recorded.available()) {
       /* 评分最高的音色标"推荐" */
       const rec = document.createElement('span');
       rec.className = 'voice-rec';
@@ -3483,10 +3615,11 @@ function renderVoiceList() {
     const lang = document.createElement('span');
     lang.className = 'voice-lang';
     lang.textContent = v.lang + '\n' + (v.localService ? '设备语音' : '联网语音');
-    btn.setAttribute('aria-pressed', String(Speech.voice?.voiceURI === v.voiceURI));
+    btn.setAttribute('aria-pressed', String(selected));
     btn.appendChild(name);
     btn.appendChild(lang);
     btn.addEventListener('click', () => {
+      Recorded.choose(false);
       Speech.use(v.voiceURI || v.name);
       renderVoiceList();
       previewVoice();
@@ -3951,6 +4084,7 @@ function init() {
   loadStars();
   Progress.load();
   Speech.init();
+  Recorded.init();
   initGarden();
   fillGlyphs();
   initAddZoomFit();
