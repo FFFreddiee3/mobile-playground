@@ -3708,7 +3708,6 @@ function armIdleNudge() {
 /* ================= 花园手帐与原创纸艺插画 ================= */
 let activeScene = 'home';
 let learningPaused = false;
-let artSerial = 0;
 function reducedMotion() {
   return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
 }
@@ -3773,83 +3772,15 @@ function renderJournal() {
     box.appendChild(section);
   });
 }
-// 24位动物共享纸张材质，但保留各自的耳朵、条纹、喙、角、鼻子与鳍轮廓。
+/* 学习配图是 AI 生成的绘本风图，一个东西一张 art/<条目id>.webp。条目与选定版本见
+   网站工程/validation/learn-pictures-20261103/selection.json，图由同目录 scripts/export_art.py 导出。
+   外层仍是 128×128 的 SVG，页面按 svg 写的尺寸与 sceneArt 里嵌套的 <svg> 都照旧生效。 */
+const ANIMAL_ART={'狮子':'L01','大象':'LA01','长颈鹿':'LA02','斑马':'LA03','大熊猫':'LA04','小猴子':'LA05','老虎':'LA06','小兔子':'LA07','小狗':'LA08','小猫':'LA09','小鸡':'LA10','奶牛':'LA11','海豚':'LA12','鲸鱼':'LA13','小螃蟹':'LA14','章鱼':'LA15','犀牛':'LA16','河马':'LA17','松鼠':'LA18','棕熊':'LA19','小羊':'LA20','小鸭子':'LA21','海龟':'LA22','海马':'LA23','小狐狸':'LA24'};
+function artImage(file,className) {
+  return '<svg '+(className?'class="'+className+'" ':'')+'viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><image href="art/'+file+'.webp" width="128" height="128"/></svg>';
+}
 function animalArt(name) {
-  const id='paper-animal-'+(++artSerial);
-  const info={
-    '狮子':['#D6A04F','lion'],'大象':['#A4B3AF','elephant'],'长颈鹿':['#E1B55F','giraffe'],'斑马':['#E5E6D7','zebra'],
-    '大熊猫':['#F5F1DF','panda'],'小猴子':['#A47B59','monkey'],'老虎':['#DC9C55','tiger'],'小兔子':['#DADBCD','rabbit'],
-    '小狗':['#B88B5B','dog'],'小猫':['#DAB782','cat'],'小鸡':['#E8BE51','chick'],'奶牛':['#EEEDE0','cow'],
-    '海豚':['#719EA6','dolphin'],'鲸鱼':['#698EA3','whale'],'小螃蟹':['#C5795B','crab'],'章鱼':['#C18E91','octopus'],
-    '犀牛':['#A5ADA6','rhino'],'河马':['#ADABA7','hippo'],'松鼠':['#B58B67','squirrel'],'棕熊':['#A3815C','bear'],
-    '小羊':['#F2EEDD','sheep'],'小鸭子':['#E1BE61','duck'],'海龟':['#7E9E6D','turtle'],'海马':['#D7AC60','seahorse'],
-    '小狐狸':['#CE925C','fox'],
-  }[name]||['#CE925C','fox'];
-  const [color,kind]=info;
-  const shade='#'+color.slice(1).match(/../g).map(c=>Math.round(parseInt(c,16)*.82).toString(16).padStart(2,'0')).join('');
-  const ellipse=(x,y,rx,ry,fill,extra='')=>`<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="${fill}" ${extra}/>`;
-  const path=(d,fill,extra='')=>`<path d="${d}" fill="${fill}" ${extra}/>`;
-  const ink='#344A40', cream='#FFF4D8';
-  let shapes='';
-  let eyes=ellipse(51,66,3,4,ink)+ellipse(77,66,3,4,ink)+ellipse(50,65,1,1,'white')+ellipse(76,65,1,1,'white');
-  let face=ellipse(64,80,18,12,cream)+path('M59 76 Q64 72 69 76 L64 81Z',ink)+path('M64 81v5m0-1q-6 5-10 0m10 0q6 5 10 0','none',`stroke="${ink}" stroke-width="1.6" stroke-linecap="round"`);
-  if(['dolphin','whale'].includes(kind)) {
-    shapes=path('M20 64Q30 37 64 39Q95 39 104 69L121 56 117 78 101 79Q87 100 53 93Q29 94 20 74L9 69Z',`url(#${id})`)+path('M58 41L70 24 76 44Z',color)+path('M46 87L57 106 73 90Z',color)+ellipse(58,84,28,9,'#D4DFD5')+ellipse(34,65,3,4,ink)+path('M28 74Q39 83 48 73','none',`stroke="${ink}" stroke-width="2" stroke-linecap="round"`);
-    if(kind==='whale')shapes+=path('M42 35Q28 18 37 11M44 33Q53 13 59 18','none','stroke="#83BAC0" stroke-width="5" stroke-linecap="round"');
-  } else if(kind==='crab') {
-    shapes=path('M35 79L16 93M34 87L19 105M93 79L113 93M91 87L107 105','none',`stroke="${color}" stroke-width="7" stroke-linecap="round"`)+path('M34 68L17 51 14 33 25 40 33 30 32 48 45 62M94 68L110 51 114 33 102 40 96 30 95 48 83 62',color)+ellipse(64,77,35,25,`url(#${id})`)+path('M49 59V45M78 59V45','none',`stroke="${color}" stroke-width="6"`)+ellipse(49,44,5,5,cream)+ellipse(78,44,5,5,cream)+ellipse(49,44,2.5,3,ink)+ellipse(78,44,2.5,3,ink)+path('M56 81Q64 89 73 80','none',`stroke="${ink}" stroke-width="2"`);
-  } else if(kind==='octopus') {
-    shapes=path('M33 77Q18 108 9 91M44 83Q35 116 26 104M56 86Q52 119 43 110M67 87Q76 120 81 107M79 83Q100 115 103 96M92 75Q118 103 121 84','none',`stroke="${color}" stroke-width="11" stroke-linecap="round"`)+ellipse(64,61,36,37,`url(#${id})`)+eyes+path('M57 79Q64 86 73 78','none',`stroke="${ink}" stroke-width="2"`);
-  } else if(kind==='turtle') {
-    shapes=ellipse(38,101,12,6,color)+ellipse(91,101,12,6,color)+ellipse(21,78,18,16,`url(#${id})`)+ellipse(72,77,41,27,'#65865A')+path('M57 58L78 56 93 75 80 92 57 92 47 75Z','#9CB783',`stroke="${ink}" stroke-opacity=".25" stroke-width="2"`)+ellipse(18,73,3,3,ink)+path('M10 85Q20 90 28 83','none',`stroke="${ink}" stroke-width="2"`);
-  } else if(kind==='seahorse') {
-    shapes=path('M75 33Q56 17 47 37L30 46 30 56 49 53Q39 71 63 83Q89 100 65 104Q50 106 54 95M61 79Q43 65 41 81','none',`stroke="${color}" stroke-width="14" stroke-linecap="round"`)+path('M78 42L93 53 76 72 85 82 69 85','#F0D6A2')+ellipse(58,41,3,4,ink)+path('M65 33L69 22 76 31',color);
-  } else if(['giraffe','zebra','rhino','hippo'].includes(kind)) {
-    const fill=`url(#${id})`;
-    const outline=`stroke="${shade}" stroke-width="1.3" stroke-linejoin="round"`;
-    shapes=ellipse(60,88,36,20,fill)+path('M34 97V113H45L48 100M74 99V114H85L88 95',color)+path('M29 84Q17 74 14 90','none',`stroke="${shade}" stroke-width="3" stroke-linecap="round"`);
-    if(kind==='giraffe') {
-      shapes+=path('M76 93L78 33 94 32 95 85Z',fill,outline)+ellipse(98,32,24,13,fill)+path('M90 22L89 8M102 22L105 10','none',`stroke="${shade}" stroke-width="4" stroke-linecap="round"`)+path('M81 27L70 18 73 31M106 23L119 18 115 32',color)+ellipse(100,29,2.7,3.4,ink)+ellipse(116,35,2,2,ink)+path('M108 39L116 39','none',`stroke="${ink}" stroke-width="1.3"`);
-      for(const [x,y,r] of [[43,83,6],[62,81,7],[72,95,5],[87,48,5],[86,67,5]])shapes+=ellipse(x,y,r,r,'#A87A3C');
-    } else if(kind==='zebra') {
-      shapes+=path('M77 93L73 44 88 35 106 55 101 69 88 67 91 88Z',fill,outline)+path('M75 44L71 51 69 80 77 83Z',ink)+path('M84 40L80 16 88 13 92 41M96 45L98 21 106 23 102 49',color,outline)+ellipse(98,61,11,8,'#737F74')+ellipse(94,47,3,3,ink);
-      shapes+=path('M34 73L43 102 47 102 43 70M53 68L58 107 64 108 60 69M69 71L75 104 81 101 77 73M80 48L94 54 99 52 84 44M80 59L89 62 90 59Z',ink);
-    } else if(kind==='rhino') {
-      shapes+=ellipse(86,77,26,25,fill)+path('M81 86Q96 56 121 73L118 92 87 96Z',fill,outline)+path('M103 76L113 45 117 76M94 76L99 62 102 77',cream,outline)+path('M80 57L73 40 87 44 88 58',color)+ellipse(91,69,3,3,ink)+path('M101 87H117','none',`stroke="${ink}" stroke-width="1.4"`);
-    } else {
-      shapes+=ellipse(88,74,28,26,fill)+ellipse(94,89,30,16,'#BEB4AB')+ellipse(73,51,7,8,color)+ellipse(101,49,7,8,color)+ellipse(82,68,3,3,ink)+ellipse(103,66,3,3,ink)+ellipse(87,84,3,2,ink)+ellipse(110,84,3,2,ink)+path('M80 95Q98 104 117 94','none',`stroke="${ink}" stroke-width="1.5"`);
-    }
-    shapes='<g data-anatomy="'+kind+'">'+shapes+'</g>';
-  } else if(['chick','duck'].includes(kind)) {
-    shapes=ellipse(64,78,34,31,`url(#${id})`)+ellipse(64,50,27,26,`url(#${id})`)+ellipse(52,49,3,4,ink)+ellipse(75,49,3,4,ink)+ellipse(64,61,14,6,'#C97B3F')+path('M43 102L35 111 55 111M75 102L73 111 94 111','#C97B3F')+ellipse(40,80,10,18,'#F1D788')+path('M60 26Q48 8 57 12L65 26M64 25Q72 7 76 16L69 28',color);
-  } else {
-    const fill=`url(#${id})`;
-    // 身体、爪子和接地影在全部哺乳动物中保持同一材质。
-    shapes=ellipse(64,94,29,21,fill)+ellipse(45,108,14,8,color)+ellipse(82,108,14,8,color);
-    if(kind==='lion')shapes+=path('M64 16L80 23 96 23 102 39 114 54 109 72 109 86 91 95 78 109 61 101 45 107 33 94 18 82 21 64 15 47 30 34 39 20Z','#A97640');
-    if(kind==='squirrel')shapes=path('M89 102Q135 74 105 44Q85 37 84 64Q110 61 91 86Z','#A87550')+shapes;
-    if(['rabbit'].includes(kind))shapes+=ellipse(48,27,10,25,color,'transform="rotate(-12 48 27)"')+ellipse(80,27,10,25,color,'transform="rotate(12 80 27)"')+ellipse(48,26,4,17,'#DAB3AA')+ellipse(80,26,4,17,'#DAB3AA');
-    else if(['cat','tiger','fox'].includes(kind))shapes+=path('M30 50L29 14 54 36M98 50L99 14 74 36',color)+path('M36 40L35 24 48 37M92 40L94 24 81 37','#E6B5A0');
-    else if(kind==='elephant')shapes+=ellipse(31,60,24,33,color)+ellipse(97,60,24,33,color)+ellipse(30,60,13,22,'#C4C9BC')+ellipse(98,60,13,22,'#C4C9BC');
-    else if(kind==='dog')shapes+=ellipse(30,57,13,29,'#8E6949','transform="rotate(10 30 57)"')+ellipse(98,57,13,29,'#8E6949','transform="rotate(-10 98 57)"');
-    else shapes+=ellipse(35,34,13,16,kind==='panda'?ink:color)+ellipse(93,34,13,16,kind==='panda'?ink:color)+ellipse(35,34,7,9,'#DDC9AD')+ellipse(93,34,7,9,'#DDC9AD');
-    shapes+=ellipse(64,61,36,34,fill);
-    if(kind==='monkey') shapes+=ellipse(64,68,28,25,'#E7CDA7')+ellipse(32,61,11,13,'#DABC94')+ellipse(96,61,11,13,'#DABC94');
-    if(kind==='sheep') shapes+=path('M32 45Q19 32 34 23Q44 8 55 20Q70 7 79 21Q100 13 100 33Q115 49 97 55L88 43 40 44Z',cream)+ellipse(64,70,24,25,'#BBA78B');
-    if(kind==='panda')shapes+=ellipse(49,64,10,13,ink,'transform="rotate(24 49 64)"')+ellipse(79,64,10,13,ink,'transform="rotate(-24 79 64)"');
-    if(['zebra','tiger'].includes(kind))shapes+=path('M54 29L60 48 64 29M68 29L69 48 78 32M30 48L45 55 30 61M98 47L82 55 98 60M34 72L46 74 36 81M94 71L82 74 93 81',kind==='zebra'?ink:'#755442');
-    if(['giraffe','cow'].includes(kind))shapes+=path('M47 31L44 15M79 31L83 15','none','stroke="#A28153" stroke-width="7" stroke-linecap="round"');
-    if(kind==='giraffe')shapes+=ellipse(38,54,7,8,'#B18541')+ellipse(86,50,6,7,'#B18541')+ellipse(50,39,6,6,'#B18541');
-    if(kind==='cow')shapes+=ellipse(84,53,13,16,ink)+ellipse(64,84,22,13,'#D6AAA0');
-    if(kind==='fox')shapes+=path('M29 55L61 77 36 84M99 55L67 77 92 84',cream);
-    if(kind==='hippo')face=ellipse(64,85,31,18,'#C3B8AA')+ellipse(49,78,3,3,ink)+ellipse(78,78,3,3,ink)+path('M47 92Q64 100 82 91','none',`stroke="${ink}" stroke-width="2"`);
-    if(kind==='rhino')face=ellipse(64,81,26,18,'#C2C8B9')+path('M59 81L64 50 72 81',cream)+path('M48 94Q64 100 81 93','none',`stroke="${ink}" stroke-width="2"`);
-    shapes+=face+eyes;
-    if(kind==='panda')shapes+=ellipse(51,65,2,3,'#FFF')+ellipse(77,65,2,3,'#FFF');
-    if(kind==='elephant')shapes+=path('M64 76Q62 106 78 98','none',`stroke="${color}" stroke-width="15" stroke-linecap="round"`)+path('M58 83L52 95 49 80M74 83L79 95 82 80',cream);
-    if(kind==='cat')shapes+=path('M38 76L21 72M37 81L20 84M91 76L108 72M92 81L109 84','none',`stroke="${ink}" stroke-width="1.5"`);
-  }
-  return `<svg viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs><linearGradient id="${id}" x1="0" y1="0" x2="1" y2="1"><stop stop-color="${color}"/><stop offset="1" stop-color="${shade}"/></linearGradient></defs><ellipse cx="67" cy="117" rx="41" ry="6" fill="#284B40" opacity=".12"/>${shapes}<ellipse cx="48" cy="43" rx="12" ry="5" fill="white" opacity=".12" transform="rotate(-25 48 43)"/></svg>`;
+  return artImage(ANIMAL_ART[name]||ANIMAL_ART['小狐狸']);
 }
 function sceneArt(scene) {
   let base=`<svg viewBox="0 0 240 150" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect width="240" height="150" fill="#DFEBD6"/><circle cx="196" cy="26" r="23" fill="#F1CC72"/><path d="M0 102Q75 44 151 111T260 81V155H0" fill="#B5CC9D"/><path d="M0 126Q80 85 166 120T245 111V155H0" fill="#789A69"/><path d="M0 145Q120 116 240 144V150H0" fill="#557B54"/>`;
@@ -3942,98 +3873,12 @@ function habitatArt(kind, wide) {
   return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="-300 0 1200 400" preserveAspectRatio="xMidYMid slice"><rect x="-300" width="1200" height="400" fill="'+sky+'"/><circle cx="-206" cy="57" r="27" fill="#F1D287"/><path d="M-300 265H0Q130 175 292 266T600 240H900V400H-300Z" fill="'+hill+'"/><path d="M-300 342H0Q150 273 313 341T600 322H900V400H-300Z" fill="'+leaf+'" opacity=".7"/>'+waves+'<g transform="translate(-270 0)">'+left+'</g><g transform="translate(270 0)">'+right+'</g>'+dots+'</svg>';
 }
 /* 学习内容的唯一插画入口。符号只作为原题库标识，不参与可见字形绘制。 */
+const LEARNING_ART={'🐟':'LS01','🐸':'LS02','🐷':'LS03','🐦':'LS04','🐴':'LS05','🐛':'LS06','🦋':'LS07','🦞':'LS08','👦':'LS09','👧':'LS10','⭐':'LS11','🍎':'L02','🍐':'LS12','🍋':'LS13','🍊':'LS14','🍓':'LS15','🍌':'LS16','🍇':'LS17','🍆':'LS18','🥦':'LS19','🥕':'LS20','🍉':'LS21','🌽':'LS22','🌸':'LS23','🌼':'LS24','🌿':'LS25','🍃':'LS26','🍀':'LS27','🌳':'LS28','🍄':'LS29','🐚':'LS30','🎈':'LS31','🍬':'LS32','🍪':'LS33','🎂':'LS34','🍦':'LS35','🥚':'LS36','🍞':'LS37','🍚':'LS38','🍜':'LS39','🥛':'LS40','🥤':'LS41','🌞':'LS42','🌙':'LS43','☁️':'LS44','🌧️':'LS45','❄️':'LS46','⚡':'LS47','🌈':'LS48','🔥':'LS49','💧':'LS50','⛰️':'LS51','🪨':'LS52','🟫':'LS53','🪵':'LS54','✋':'LS55','🚗':'L03','🚌':'LS56','🚂':'LS57','✈️':'LS58','⛵':'LS59','🚲':'LS60','🏠':'LS61','🚪':'LS62','💡':'LS63','📖':'LS64','✏️':'LS65','☂️':'LS66','🎒':'LS67','⏰':'LS68','⚽':'LS69','👕':'LS70','👗':'LS71','🧦':'LS72','🧤':'LS73','👟':'LS74','🧢':'LS75','🔴':'LS76','🔷':'LS77'};
 function learningArt(symbol) {
   const animals={'🐰':'小兔子','🐻':'棕熊','🐵':'小猴子','🐶':'小狗','🐱':'小猫','🐮':'奶牛','🐑':'小羊','🦆':'小鸭子','🦁':'狮子','🐘':'大象','🦓':'斑马','🐯':'老虎'};
-  if(animals[symbol]) return animalArt(animals[symbol]).replace('<svg ', '<svg class="learning-art" ');
-  const id='learning-art-'+(++artSerial), defs=[];
-  const ink='#52644F', cream='#FFF4D8', gold='#DAB359', leaf='#87A476', red='#BC705B', blue='#709EA4', brown='#A18460';
-  const material=c=>{const k=id+'-'+c.slice(1);if(!defs.some(x=>x.includes('id="'+k+'"'))){const dark='#'+c.slice(1).match(/../g).map(v=>Math.round(parseInt(v,16)*.82).toString(16).padStart(2,'0')).join('');defs.push('<linearGradient id="'+k+'" x1="0" y1="0" x2="1" y2="1"><stop stop-color="'+c+'"/><stop offset="1" stop-color="'+dark+'"/></linearGradient>');}return 'url(#'+k+')';};
-  const p=(d,c,extra='')=>`<path d="${d}" fill="${c==='none'?'none':material(c)}" stroke="${ink}" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" ${extra}/>`;
-  const e=(x,y,rx,ry,c,extra='')=>`<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="${material(c)}" stroke="${ink}" stroke-width="1.3" ${extra}/>`;
-  const line=(d,c=ink,w=2)=>`<path d="${d}" fill="none" stroke="${c}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`;
-  const box=(x,y,w,h,r,c)=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}" fill="${material(c)}" stroke="${ink}" stroke-width="1.5"/>`;
-  const eye=(x,y)=>e(x,y,2.4,3.3,'#354B40')+e(x-.6,y-.9,.6,.7,'#FFFCF1');
-  const stem=(x=64,y=30)=>line(`M${x} ${y}q-2-12 7-18`,brown,4)+p(`M${x} ${y-8}q-25-20-28 0 15 10 28 0`,leaf);
-  const cloud=(x=64,y=55)=>p(`M${x-39} ${y+19}q-16-22 6-28 5-28 28-21 17-22 33 2 31-4 29 23 13 23-15 26h-62Z`,'#E6E7DB');
-  const spokes=(x,y,r,c,w=3)=>Array.from({length:8},(_,i)=>{const a=i*Math.PI/4;return line(`M${x+Math.cos(a)*r} ${y+Math.sin(a)*r}l${Math.cos(a)*10} ${Math.sin(a)*10}`,c,w);}).join('');
-  const leafShape=(x,y,angle=0)=>p(`M${x} ${y}q-30-31-38 6 6 24 38-6Z`,leaf,`transform="rotate(${angle} ${x} ${y})"`);
-  let art='';
-  switch(symbol){
-    case '🐟':art=p('M96 58 119 41 114 82 95 70Z',blue)+e(58,64,42,26,blue)+p('M58 39 72 23 78 44Z','#99B4A1')+p('M57 86 75 100 80 80Z','#99B4A1')+line('M50 44q-10 21 0 41')+eye(33,60)+line('M24 71q9 6 15-1');break;
-    case '🐸':art=e(64,82,34,26,leaf)+e(35,98,19,9,leaf)+e(94,98,19,9,leaf)+e(64,55,38,28,leaf)+e(42,32,12,14,leaf)+e(86,32,12,14,leaf)+eye(42,31)+eye(86,31)+p('M36 63Q64 88 94 63Q65 98 36 63Z',cream)+e(31,60,6,3,'#D3A989')+e(96,60,6,3,'#D3A989');break;
-    case '🐷':art=e(64,88,29,23,'#D7AAA0')+p('M32 45 22 18 51 30M80 30 107 18 96 47Z','#C78D81')+e(64,61,36,35,'#D7AAA0')+eye(49,57)+eye(79,57)+e(64,77,20,13,'#BD887F')+e(57,76,2,3,ink)+e(71,76,2,3,ink)+e(44,110,12,6,'#C78D81')+e(82,110,12,6,'#C78D81');break;
-    case '🐦':art=p('M31 76 12 87 22 59Z',blue)+e(64,73,32,24,blue)+e(80,48,23,24,blue)+p('M99 47 120 55 99 59Z',gold)+e(61,76,20,13,'#B5C6AB')+eye(86,44)+line('M53 96v13m0-1h-8m29-12v13m0-1h8',brown,3);break;
-    case '🐴':art=e(57,85,36,22,brown)+p('M76 92 72 42 83 28 104 50 103 69 87 67 94 94Z',brown)+p('M76 40 66 47 68 81 77 84Z','#73674F')+p('M86 33 81 13 90 12 95 37Z',brown)+eye(95,47)+p('M30 100v14h12l5-14M72 101v13h12l4-16',brown)+line('M23 79q-15-9-13 8',brown,5);break;
-    case '🐛':art=e(31,86,14,17,leaf)+e(52,82,16,19,leaf)+e(76,76,17,22,leaf)+e(96,61,21,24,leaf)+eye(89,56)+eye(103,56)+line('M85 36 80 24M102 36l8-14')+line('M89 70q8 7 14-1');break;
-    case '🦋':art=p('M61 57Q15 2 12 43Q11 67 49 72Q9 62 21 97Q38 123 63 78Z',blue)+p('M67 57Q113 2 116 43Q117 67 79 72Q119 62 107 97Q90 123 65 78Z',blue)+e(32,44,9,14,'#BDD1B5')+e(97,44,9,14,'#BDD1B5')+e(64,69,5,29,brown)+line('M62 42q-12-20-18-10M66 42q12-20 18-10');break;
-    case '🦞':art=e(66,70,17,33,red)+p('M52 90 44 110 67 116 87 109 79 89Z',red)+line('M49 65 29 75l-9 16m28-14-20 12-8 14m64-38 18 11 9 16M84 80l18 10 8 13',red,5)+p('M48 53 26 43Q3 39 15 16L24 28 29 10Q50 21 38 39L58 47Z',red)+p('M84 53 103 43Q126 39 114 16L104 28 100 10Q79 21 91 39L75 47Z',red)+eye(59,42)+eye(73,42)+line('M59 37 44 18M73 37 85 18');break;
-    case '👦':case '👧':art=box(31,88,66,28,15,blue)+(symbol==='👧'?e(31,59,15,36,brown)+e(97,59,15,36,brown):'')+e(64,57,32,36,'#DEC19D')+p('M32 48Q27 9 65 14Q104 9 99 48L79 32 63 42 50 30Z',brown)+eye(52,58)+eye(77,58)+line('M56 75q8 7 17 0')+line('M64 93v18',cream,3);break;
-    case '⭐':art=p('M64 12 79 44 115 49 89 75 95 112 64 96 33 112 39 75 13 49 49 44Z',gold)+line('M57 32 51 52 28 56',cream,4);break;
-    case '🍎':art=p('M64 38Q91 19 107 46Q123 80 90 108Q76 120 64 111Q49 122 31 105Q6 76 21 47Q35 20 64 38Z',red)+stem()+line('M33 49Q25 60 27 72','#E6B59B',5);break;
-    case '🍐':art=p('M53 25Q67 11 77 27Q81 55 101 72Q123 103 85 117H43Q5 106 27 76Q48 55 53 25Z',leaf)+stem(64,24)+line('M42 77Q31 90 37 100','#D7E2AF',4);break;
-    case '🍋':art=p('M15 61Q17 32 51 25Q83 14 103 43L118 47 113 59Q112 87 83 101Q51 118 25 87L12 81Z',gold)+line('M36 40q22-14 41-7',cream,5)+leafShape(94,36,-70);break;
-    case '🍊':art=e(64,73,44,42,'#D7A45C')+stem(64,31)+line('M34 59q-7 14-2 27','#F0D697',4);break;
-    case '🍓':art=p('M24 43Q10 64 63 118Q114 72 104 44Q69 19 24 43Z',red)+p('M23 34 45 36 46 19 64 32 83 17 83 36 108 30 93 48 63 42 34 50Z',leaf)+[ [42,62],[65,56],[83,65],[54,79],[74,84],[64,100] ].map(([x,y])=>e(x,y,1.8,3,cream)).join('');break;
-    case '🍌':art=p('M27 15Q29 88 104 65L114 57Q114 85 88 104Q32 137 15 67Q9 38 19 17Z',gold)+line('M23 37q1 59 64 53',cream,5)+p('M20 14 30 18 27 29 17 25Z',brown)+p('M107 56 118 58 116 68 107 68Z',brown);break;
-    case '🍇':art=stem(69,24)+[[45,44],[69,42],[87,53],[35,66],[59,64],[80,76],[48,89],[65,106]].map(([x,y])=>e(x,y,15,16,'#9C8DA6')).join('');break;
-    case '🍆':art=p('M81 32Q101 67 70 99Q44 120 18 100Q54 93 55 70Q54 41 81 32Z','#8F82A1')+p('M53 36 72 30 73 14 84 24 102 21 92 38 104 49 81 44 68 55 68 39Z',leaf)+line('M72 50q14 28-10 44','#BCA9BD',4);break;
-    case '🥦':art=p('M48 52 58 93 40 115 89 115 74 89 87 52Z',leaf)+e(37,49,24,23,'#648A62')+e(65,32,26,24,'#648A62')+e(94,51,23,24,'#648A62')+e(62,58,25,23,'#74996B');break;
-    case '🥕':art=p('M82 29Q112 44 90 65L28 119 48 41Q59 19 82 29Z','#CF9560')+line('M57 52 71 58M48 74 60 80M41 93l8 4',brown,2)+p('M85 31Q66 5 81 4L94 26Q103-3 116 10L102 36Z',leaf);break;
-    case '🍉':art=p('M13 42H115Q111 120 63 120Q18 118 13 42Z',leaf)+p('M23 43H105Q99 107 64 109Q32 107 23 43Z',cream)+p('M31 43H98Q91 99 64 99Q41 97 31 43Z',red)+[[45,57],[70,55],[86,60],[58,77],[77,83]].map(([x,y])=>e(x,y,2,4,ink)).join('');break;
-    case '🌽':art=e(65,56,23,45,gold)+Array.from({length:6},(_,r)=>[54,65,76].map(x=>box(x-3,22+r*11,7,8,3,'#E7C471')).join('')).join('')+p('M62 111Q18 96 14 48Q48 61 62 111M66 112Q116 90 117 43Q74 72 66 112Z',leaf);break;
-    case '🌸':case '🌼':art=Array.from({length:6},(_,i)=>{const a=i*Math.PI/3;return e(64+Math.cos(a)*28,61+Math.sin(a)*28,16,20,symbol==='🌸'?'#D2A4A3':gold,`transform="rotate(${i*60+90} ${64+Math.cos(a)*28} ${61+Math.sin(a)*28})"`);}).join('')+e(64,61,17,17,'#C49D4E');break;
-    case '🌿':case '🍃':case '🍀':art=line('M33 116Q72 75 81 16',brown,4)+leafShape(77,46)+leafShape(63,72,175)+leafShape(51,95)+ (symbol==='🍀'?leafShape(66,58,70)+leafShape(66,58,-70):'');break;
-    case '🌳':art=p('M57 57 52 118H77L69 57Z',brown)+e(39,59,28,28,leaf)+e(85,56,28,29,leaf)+e(65,34,30,29,leaf)+line('M64 102V61m0 17L48 64m16 8 18-18',brown,3);break;
-    case '🍄':art=p('M54 52 48 112Q65 122 82 112L74 53Z',cream)+p('M11 61Q20 3 65 12Q107 16 118 61Q71 81 11 61Z',red)+e(40,43,8,6,cream)+e(75,31,9,6,cream)+e(96,51,7,5,cream);break;
-    case '🐚':art=p('M64 115 14 56Q6 28 30 29Q38 7 57 19Q71 2 88 19Q113 16 111 42Q136 50 111 77L75 117Z','#DBBCA3')+line('M64 106 31 39M68 103 57 24M72 103 84 25M76 109 108 51','#A1896E',3)+box(55,106,26,10,5,cream);break;
-    case '🎈':art=e(63,43,33,37,red)+p('M59 80 55 90H72L66 80Z',red)+line('M64 90q20 13 0 22t6 12',brown,2)+line('M40 29q-8 12-3 24','#E5B5A0',4);break;
-    case '🍬':art=p('M36 48 7 27 12 64 7 97 36 81M92 48 121 28 116 65 121 98 92 81Z',red)+box(28,40,72,49,19,gold)+p('M50 41 74 41 62 88 38 88Z',cream);break;
-    case '🍪':art=e(64,64,47,47,'#D4AE73')+[[43,37],[75,34],[88,60],[66,75],[38,83],[75,96],[28,58]].map(([x,y])=>e(x,y,5,4,brown)).join('')+line('M36 30q16-8 27-7',cream,3);break;
-    case '🎂':art=box(18,54,92,56,10,'#D8B28F')+box(18,53,92,18,8,cream)+line('M24 90h80',red,10)+[42,65,88].map(x=>box(x,25,4,27,2,blue)+p(`M${x+2} 22q-12-10 1-18 10 11-1 18`,gold)).join('');break;
-    case '🍦':art=p('M39 64 63 119 88 64Z','#CDAC75')+line('M49 80 73 98M57 74 79 88M54 100l18-28M62 114l17-29',cream,2)+p('M27 65Q21 47 43 44Q34 23 60 24Q59 5 77 12Q91 19 85 37Q109 38 103 61Z','#EAE1C7');break;
-    case '🥚':art=p('M65 15Q86 14 106 68Q124 118 64 118Q6 118 24 70Q39 21 65 15Z',cream)+line('M44 36q-12 18-13 34','#FFFFFF',5);break;
-    case '🍞':art=p('M29 45Q9 26 28 14Q51 3 65 13Q88 1 108 20Q120 37 100 45L99 112H30Z','#BA956A')+p('M38 48Q21 34 38 24Q53 14 66 23Q82 14 98 27Q108 38 91 48V103H38Z','#E3CAA0');break;
-    case '🍚':case '🍜':art=e(64,57,48,15,cream)+(symbol==='🍚'?Array.from({length:6},(_,i)=>e(32+i*13,49+(i%2)*5,9,5,'#F6EBD3')).join(''):line('M30 49q10-12 20 0t20 0t24 0M30 58q14-12 28 0t34 0',gold,4))+p('M16 58Q20 107 64 110Q106 105 112 58Z',blue)+line('M25 71q39 17 78 0',cream,3)+(symbol==='🍜'?line('M78 45 101 9M84 46l23-35',brown,4):'');break;
-    case '🥛':case '🥤':art=p('M34 20H96L89 114H43Z',symbol==='🥛'?'#DCE5D9':blue)+p('M39 48H91L85 109H46Z',symbol==='🥛'?cream:'#D5B080')+line('M47 28 51 97','#FFFBED',4)+(symbol==='🥤'?line('M69 62 78 12h22',red,5):'');break;
-    case '🌞':art=spokes(64,64,39,gold,5)+e(64,64,30,30,gold)+line('M48 45q7-5 14-6',cream,4);break;
-    case '🌙':art=p('M90 15Q51 40 76 79Q92 97 113 90Q86 127 43 103Q3 74 28 32Q51-2 90 15Z',gold)+e(44,69,5,6,'#C29A4B')+e(66,91,7,5,'#C29A4B');break;
-    case '☁️':art=cloud();break;
-    case '🌧️':art=cloud(64,39)+[31,61,91].map(x=>line(`M${x} 81l-7 19M${x+5} 108l-5 10`,blue,4)).join('');break;
-    case '❄️':art=Array.from({length:6},(_,i)=>{const a=i*Math.PI/3,x=64+Math.cos(a)*45,y=64+Math.sin(a)*45;return line(`M64 64L${x} ${y}`,blue,4)+`<g transform="rotate(${i*60} 64 64)">${line('M92 52 98 64 92 76',blue,3)}</g>`;}).join('');break;
-    case '⚡':art=p('M72 7 26 70 59 70 49 122 106 49 72 49 86 7Z',gold);break;
-    case '🌈':art=[red,'#D19C65',gold,leaf,blue,'#7D8DA5','#9E8EAA'].map((c,i)=>`<path d="M${13+i*7} 106V72a${51-i*7} ${51-i*7} 0 0 1 ${102-i*14} 0v34" fill="none" stroke="${c}" stroke-width="7.5"/>`).join('');break;
-    case '🔥':art=p('M69 8Q80 40 98 52Q129 102 80 120Q20 136 19 84Q18 64 41 41L44 69Q68 44 69 8Z',red)+p('M65 54Q60 85 83 91Q91 114 62 116Q38 110 45 89Z',gold);break;
-    case '💧':art=p('M64 8Q51 36 29 63Q0 103 44 119Q94 137 107 91Q111 66 64 8Z',blue)+line('M37 76q-7 19 8 26','#DFEEE1',5);break;
-    case '⛰️':art=p('M5 112 48 26 74 72 91 44 124 112Z','#9FAE98')+p('M30 62 48 26 67 60 53 55 46 67 41 56Z',cream)+p('M77 69 91 44 104 71 91 66Z',cream);break;
-    case '🪨':art=p('M20 96 13 69 30 34 70 19 108 42 118 88 94 113 47 118Z','#A9B2A3')+line('M30 34 49 56 13 69M49 56l21-37M49 56l39 13 20-27M88 69l6 44','#CAD1BE',3);break;
-    case '🟫':art=p('M14 68 53 35 111 44 121 95 77 116 17 105Z',brown)+p('M14 68 69 78 111 44 53 35Z','#B69A6A')+line('M30 87h15m27 9h15M50 52h13','#D8C6A1',4);break;
-    case '🪵':art=p('M22 85 75 24Q96 20 113 40Q128 57 109 73L54 116Z',brown)+e(36,98,22,20,'#D6BC91')+e(36,98,12,11,'#D6BC91')+line('M62 89 103 44M51 71l24-30',cream,3);break;
-    case '✋':art=p('M39 115 24 83 11 58Q10 47 20 50L35 64V28Q35 15 44 21L49 56V12Q54 2 60 12L62 54 66 11Q74 5 78 16L77 56 85 24Q96 21 95 34L93 78Q98 110 80 119Z','#DDC1A0')+line('M47 76q21-11 37 4',brown,2);break;
-    case '🚗':case '🚌':art=box(13,symbol==='🚌'?25:50,102,symbol==='🚌'?73:48,12,red)+(symbol==='🚗'?p('M31 50 44 24H81L102 50Z',red):'')+box(38,32,23,22,3,'#C8DED5')+box(66,32,23,22,3,'#C8DED5')+e(35,100,14,14,ink)+e(94,100,14,14,ink)+e(35,100,6,6,cream)+e(94,100,6,6,cream)+box(16,70,12,7,3,gold)+line('M49 69h10',cream,2);break;
-    case '🚂':art=box(22,57,83,42,8,leaf)+box(67,23,40,58,6,leaf)+box(76,32,20,23,3,'#CEE0D5')+box(28,29,13,29,2,brown)+box(24,26,21,7,2,brown)+[37,64,93].map(x=>e(x,103,13,13,ink)+e(x,103,5,5,cream)).join('')+cloud(34,6);break;
-    case '✈️':art=p('M64 6Q75 6 73 45L119 81 113 91 74 77 74 104 89 116 84 121 64 113 44 121 39 116 54 104 54 77 15 91 9 81 55 45Q53 6 64 6Z','#BCCEC2')+line('M63 18v76',cream,4);break;
-    case '⛵':art=p('M9 92H119L99 113H32Z',brown)+line('M65 12v81',ink,3)+p('M59 22 16 83H59Z',cream)+p('M71 27 109 77H71Z',red)+line('M7 122q14-9 28 0t28 0t28 0t28 0',blue,3);break;
-    case '🚲':art=e(28,90,24,24,'#DCE2D0')+e(100,90,24,24,'#DCE2D0')+line('M28 90 53 47 74 90H28m46 0 18-49 8 49M45 45h20m22-5h14V28',red,5)+line('M28 90 53 47 74 90M74 90l26 0',red,3);break;
-    case '🏠':art=p('M22 55 63 16 109 54V116H22Z',cream)+p('M10 58 64 9 119 58 109 66 64 26 20 67Z',red)+box(53,76,22,40,2,brown)+box(30,63,16,17,2,blue)+box(84,63,16,17,2,blue);break;
-    case '🚪':art=box(26,8,78,112,3,brown)+p('M37 18 91 26V113L37 103Z','#D9BA87')+e(80,72,3,3,gold);break;
-    case '💡':art=e(64,48,35,37,gold)+p('M49 76H79L76 106H52Z','#B5B9A6')+line('M51 92h27m-24 9h22M56 76l-6-24 14 9 14-9-7 24',ink,2)+line('M59 117h11',brown,4);break;
-    case '📖':art=p('M8 27Q39 14 64 33Q87 15 120 27V106Q88 97 64 114Q38 99 8 108Z',cream)+line('M64 34v78',brown,2)+line('M20 43q16-4 30 3m-30 13q16-4 30 3m-30 13q16-4 30 3m28-34q15-6 29-3m-29 18q15-6 29-3m-29 18q15-6 29-3','#A4AD8B',3);break;
-    case '✏️':art=p('M20 92 85 15 111 37 45 112 11 121Z',gold)+p('M11 121 20 92 45 112Z','#D6BC90')+p('M11 121 15 108 25 117Z',ink)+p('M85 15 97 2 123 24 111 37Z',red)+line('M31 92 93 23',cream,4);break;
-    case '☂️':art=p('M8 63Q13 8 63 13Q113 9 120 63Q105 51 92 63Q77 51 63 63Q47 51 34 63Q21 51 8 63Z',red)+line('M63 63v43q0 19-17 10',brown,4)+line('M63 14q-27 17-29 46m29-46q28 15 29 46',cream,2);break;
-    case '🎒':art=box(25,31,79,86,17,blue)+line('M46 31v-9q19-23 38 0v9',brown,8)+box(35,68,58,40,10,'#A8B9A1')+line('M42 79h44',cream,2)+box(29,44,71,10,4,brown);break;
-    case '⏰':art=e(64,67,43,43,'#CAB386')+e(64,67,33,33,cream)+line('M64 44v24l21 11',ink,4)+line('M37 105 29 120M93 105l8 15',brown,5)+e(29,23,19,9,red,'transform="rotate(-30 29 23)"')+e(99,23,19,9,red,'transform="rotate(30 99 23)"');break;
-    case '⚽':art=e(64,64,49,49,'#F0EBD7')+p('M48 44 74 38 89 59 76 81 49 77 39 59Z',ink)+line('M48 44 38 24M74 38 86 23M89 59 111 63M76 81 89 106M49 77 32 99M39 59 17 59',ink,3);break;
-    case '👕':art=p('M44 15Q63 33 82 15L118 40 99 64 87 55V115H37V55L25 64 9 40Z',blue)+line('M50 19q12 20 28 0',cream,3);break;
-    case '👗':art=p('M44 12H56Q64 30 73 12H84L82 39 69 53 109 116H18L58 53 44 39Z',red)+line('M52 53h23',cream,6);break;
-    case '🧦':art=p('M55 10H94V73Q113 92 88 107L38 121Q4 119 13 96L54 74Z',red)+line('M57 27h35M42 96l13 18',cream,7);break;
-    case '🧤':art=p('M46 113 34 83 17 61Q13 48 25 49L42 62V25Q47 8 55 24L58 49 58 11Q66 2 70 14L71 47 77 15Q87 9 88 21L83 51 94 31Q106 29 103 44L94 91 86 113Z',leaf)+box(43,104,47,17,3,brown);break;
-    case '👟':art=p('M24 26 56 29 66 65 113 83Q126 93 118 113H12L14 78Z',blue)+p('M12 103H121V116H11Z',cream)+line('M53 63 77 69M55 73l26 6M23 54l23 6',cream,4);break;
-    case '🧢':art=p('M24 76Q21 18 71 17Q110 19 112 78Z',blue)+p('M20 76Q59 60 109 78L124 96Q104 110 78 97L42 88 14 87Z','#A2B6A1')+line('M70 18q-23 16-19 50',cream,2);break;
-    case '🔴':art=e(64,64,45,45,red)+line('M37 43q10-12 21-12',cream,4);break;
-    case '🔷':art=p('M64 10 115 64 64 118 13 64Z',blue)+line('M29 64 64 26',cream,4);break;
-    default:throw new Error('学习插画缺少题库图形：'+symbol);
-  }
-  return '<svg class="learning-art" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs>'+defs.join('')+'</defs><ellipse cx="66" cy="120" rx="43" ry="5" fill="#284B40" opacity=".10"/>'+art+'</svg>';
+  if(animals[symbol]) return artImage(ANIMAL_ART[animals[symbol]],'learning-art');
+  if(!LEARNING_ART[symbol]) throw new Error('学习插画缺少题库图形：'+symbol);
+  return artImage(LEARNING_ART[symbol],'learning-art');
 }
 function paintLearningArt(element,symbol) {
   element.innerHTML=learningArt(symbol);
